@@ -1,0 +1,1554 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form Management — Durable Submission Record (Mockup)</title>
+    <style>
+        /* Approximate the existing BP admin look so this reads as a redesign,
+           not a different application. Colors / structure match form_submit_tool-legacy.html. */
+        :root {
+            --bp-navy: #2c3e63;
+            --bp-navy-dark: #1f2d49;
+            --bp-titlebar: #3a4a73;
+            --bp-row1: #ffffff;
+            --bp-row2: #f3f5fa;
+            --bp-page-bg: #e6e9ef;
+            --bp-line: #c7cdda;
+            --bp-text: #1f2a44;
+            --bp-muted: #5a6781;
+            --bp-link: #1d4ed8;
+
+            --ok: #167d4a;
+            --ok-bg: #dff3e6;
+            --warn: #9a5a00;
+            --warn-bg: #fdecd0;
+            --bad: #a4262c;
+            --bad-bg: #fbe2e3;
+            --neutral: #4b5563;
+            --neutral-bg: #e5e7eb;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: "Open Sans", "Segoe UI", Tahoma, sans-serif;
+            font-size: 13px;
+            color: var(--bp-text);
+            background: var(--bp-page-bg);
+        }
+
+        a {
+            color: var(--bp-link);
+            text-decoration: underline;
+        }
+
+        a:hover {
+            text-decoration: none;
+        }
+
+        /* Banner */
+        .banner {
+            background: var(--bp-navy);
+            color: #fff;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .banner .logo {
+            font-weight: 700;
+            font-size: 14px;
+            letter-spacing: 0.04em;
+            background: rgba(255, 255, 255, 0.08);
+            padding: 8px 12px;
+            border-radius: 4px;
+        }
+
+        .banner .subtitle {
+            opacity: 0.75;
+            font-size: 13px;
+        }
+
+        .banner .title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .banner .spacer {
+            flex: 1;
+        }
+
+        .banner .mock-tag {
+            background: #c97a17;
+            color: #fff;
+            padding: 2px 10px;
+            border-radius: 999px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .ribbon {
+            background: var(--bp-navy-dark);
+            color: #c9d1e3;
+            padding: 6px 20px;
+            font-size: 12px;
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .ribbon i {
+            font-style: normal;
+        }
+
+        /* Layout: sidebar + main */
+        .layout {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            min-height: calc(100vh - 80px);
+        }
+
+        .sidebar {
+            background: var(--bp-navy);
+            color: #e9ecf5;
+        }
+
+        .sidebar .module {
+            padding: 10px 14px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            font-size: 12px;
+            letter-spacing: 0.02em;
+            cursor: default;
+        }
+
+        .sidebar .module.active {
+            background: var(--bp-titlebar);
+            border-left: 4px solid #c97a17;
+            padding-left: 10px;
+            font-weight: 600;
+        }
+
+        .main {
+            padding: 16px 20px 40px;
+        }
+
+        .page-header {
+            font-size: 22px;
+            font-weight: 700;
+            color: #6c7591;
+            letter-spacing: 0.02em;
+            font-style: italic;
+            margin: 0 0 10px;
+        }
+
+        /* Section tabs (Form Submissions / Fields / Pages / etc.) */
+        .section-tabs {
+            display: flex;
+            gap: 2px;
+            margin-bottom: 0;
+        }
+
+        .section-tabs .tab {
+            background: var(--bp-titlebar);
+            color: #d9deeb;
+            padding: 8px 14px;
+            font-size: 12px;
+            cursor: default;
+        }
+
+        .section-tabs .tab.on {
+            background: var(--bp-navy);
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .mainbody {
+            background: #f7f8fb;
+            border: 1px solid var(--bp-line);
+            border-top: none;
+            padding: 14px;
+        }
+
+        /* Toolbar above table */
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px dashed var(--bp-line);
+        }
+
+        .toolbar .btn {
+            background: #e9eef7;
+            border: 1px solid var(--bp-line);
+            padding: 5px 12px;
+            border-radius: 3px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .toolbar .btn.primary {
+            background: var(--bp-navy);
+            color: #fff;
+            border-color: var(--bp-navy-dark);
+        }
+
+        .toolbar label {
+            font-size: 12px;
+            color: var(--bp-muted);
+        }
+
+        .toolbar input[type="text"],
+        .toolbar select {
+            border: 1px solid var(--bp-line);
+            padding: 4px 8px;
+            font-size: 12px;
+            border-radius: 3px;
+            background: #fff;
+        }
+
+        .toolbar .spacer {
+            flex: 1;
+        }
+
+        .new-marker {
+            display: inline-block;
+            background: #c97a17;
+            color: #fff;
+            font-size: 9px;
+            padding: 1px 6px;
+            border-radius: 999px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            vertical-align: middle;
+            margin-left: 4px;
+        }
+
+        /* Table */
+        .grid {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+            background: #fff;
+            border: 1px solid var(--bp-line);
+        }
+
+        .grid thead th {
+            background: var(--bp-titlebar);
+            color: #fff;
+            text-align: left;
+            padding: 8px 8px;
+            font-weight: 600;
+            font-size: 11px;
+            vertical-align: bottom;
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            white-space: nowrap;
+        }
+
+        .grid tbody td {
+            padding: 8px 8px;
+            border-bottom: 1px solid var(--bp-line);
+            vertical-align: top;
+        }
+
+        .grid tbody tr:nth-child(odd) {
+            background: var(--bp-row1);
+        }
+
+        .grid tbody tr:nth-child(even) {
+            background: var(--bp-row2);
+        }
+
+        .grid tbody tr:hover {
+            background: #eef2fb;
+            cursor: pointer;
+        }
+
+        .grid tbody tr.selected {
+            background: #dfe7fb !important;
+            outline: 2px solid #5b7adf;
+            outline-offset: -2px;
+        }
+
+        .grid .num {
+            color: var(--bp-muted);
+            width: 28px;
+        }
+
+        .grid .check {
+            width: 24px;
+        }
+
+        .grid .nowrap {
+            white-space: nowrap;
+        }
+
+        /* Status / boolean cells */
+        .chip {
+            display: inline-block;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 1px 8px;
+            border-radius: 10px;
+            border: 1px solid transparent;
+            line-height: 1.4;
+        }
+
+        .chip.ok {
+            background: var(--ok-bg);
+            color: var(--ok);
+            border-color: rgba(22, 125, 74, 0.25);
+        }
+
+        .chip.warn {
+            background: var(--warn-bg);
+            color: var(--warn);
+            border-color: rgba(154, 90, 0, 0.25);
+        }
+
+        .chip.bad {
+            background: var(--bad-bg);
+            color: var(--bad);
+            border-color: rgba(164, 38, 44, 0.25);
+        }
+
+        .chip.neutral {
+            background: var(--neutral-bg);
+            color: var(--neutral);
+            border-color: rgba(75, 85, 99, 0.25);
+        }
+
+        .bool {
+            display: inline-block;
+            min-width: 18px;
+            text-align: center;
+            font-weight: 700;
+            font-size: 12px;
+        }
+
+        .bool.t {
+            color: var(--ok);
+        }
+
+        .bool.f {
+            color: #b0b6c4;
+        }
+
+        .bool.na {
+            color: #b0b6c4;
+        }
+
+        /* Step strip — compact visual of pipeline booleans */
+        .steps {
+            display: inline-flex;
+            gap: 2px;
+            align-items: center;
+        }
+
+        .steps .seg {
+            width: 14px;
+            height: 8px;
+            border-radius: 2px;
+            background: #d9dde7;
+        }
+
+        .steps .seg.done {
+            background: var(--ok);
+        }
+
+        .steps .seg.pending {
+            background: var(--warn);
+        }
+
+        .steps .seg.blocked {
+            background: var(--bad);
+        }
+
+        .steps .label {
+            margin-left: 6px;
+            color: var(--bp-muted);
+            font-size: 11px;
+        }
+
+        .pagination {
+            text-align: center;
+            padding: 10px 0 0;
+            color: var(--bp-muted);
+            font-size: 12px;
+        }
+
+        /* Detail panel (mirrors detail page screenshot) */
+        .detail {
+            margin-top: 18px;
+            background: #fff;
+            border: 1px solid var(--bp-line);
+        }
+
+        .detail-header {
+            background: var(--bp-titlebar);
+            color: #fff;
+            padding: 10px 14px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .detail-header .title {
+            font-weight: 600;
+            font-size: 14px;
+            flex: 1;
+        }
+
+        .detail-header .id {
+            font-family: Consolas, "Cascadia Mono", monospace;
+            opacity: 0.85;
+            font-size: 12px;
+        }
+
+        .detail-header .btn-list {
+            background: #fff;
+            color: var(--bp-text);
+            border: 1px solid var(--bp-line);
+            padding: 4px 10px;
+            font-size: 12px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        .detail-body {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 0;
+        }
+
+        .detail-meta,
+        .detail-state {
+            padding: 14px 16px;
+        }
+
+        .detail-meta {
+            border-right: 1px solid var(--bp-line);
+            background: #fbfcfe;
+        }
+
+        .meta-row {
+            display: grid;
+            grid-template-columns: 130px 1fr;
+            font-size: 12px;
+            padding: 4px 0;
+            border-bottom: 1px dotted #e3e6ee;
+        }
+
+        .meta-row:last-child {
+            border-bottom: none;
+        }
+
+        .meta-row .k {
+            color: var(--bp-muted);
+        }
+
+        .meta-row .v {
+            color: var(--bp-text);
+        }
+
+        .meta-row .v a {
+            font-size: 12px;
+        }
+
+        .debug-list {
+            margin: 6px 0 0 14px;
+            padding: 0;
+            font-size: 12px;
+        }
+
+        .debug-list li {
+            margin: 2px 0;
+        }
+
+        /* Right column: durable status, payment/reconcile, pipeline, related */
+        .state-section {
+            margin-bottom: 18px;
+        }
+
+        .state-title {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--bp-muted);
+            margin: 0 0 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .bool-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+            gap: 6px 16px;
+            font-size: 12px;
+        }
+
+        .bool-grid .item {
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+            padding: 4px 8px;
+            background: #f7f8fb;
+            border: 1px solid #e3e6ee;
+            border-radius: 3px;
+        }
+
+        .bool-grid .item .lbl {
+            color: var(--bp-text);
+        }
+
+        .bool-grid .item .val {
+            font-weight: 700;
+            font-size: 11px;
+        }
+
+        .bool-grid .item.t .val {
+            color: var(--ok);
+        }
+
+        .bool-grid .item.f .val {
+            color: #97a0b3;
+        }
+
+        .bool-grid .item.na .val {
+            color: #97a0b3;
+        }
+
+        .bool-grid .item.warn {
+            border-color: rgba(154, 90, 0, 0.3);
+        }
+
+        .bool-grid .item.warn .val {
+            color: var(--warn);
+        }
+
+        .bool-grid .item.bad {
+            border-color: rgba(164, 38, 44, 0.4);
+            background: var(--bad-bg);
+        }
+
+        .bool-grid .item.bad .val {
+            color: var(--bad);
+        }
+
+        .pipeline {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 4px;
+        }
+
+        .pipeline .step {
+            display: grid;
+            grid-template-columns: 90px 1fr 1fr;
+            gap: 12px;
+            padding: 6px 8px;
+            background: #f7f8fb;
+            border: 1px solid #e3e6ee;
+            border-radius: 3px;
+            font-size: 12px;
+            align-items: center;
+        }
+
+        .pipeline .step .when {
+            color: var(--bp-muted);
+            font-family: Consolas, monospace;
+            font-size: 11px;
+        }
+
+        .pipeline .step .what {
+            font-weight: 600;
+        }
+
+        .pipeline .step .note {
+            color: var(--bp-muted);
+        }
+
+        .recovery-banner {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            padding: 8px 12px;
+            border-radius: 3px;
+            font-size: 12px;
+            margin: 0 14px 12px;
+        }
+
+        .recovery-banner.warn {
+            background: var(--warn-bg);
+            color: var(--warn);
+            border: 1px solid rgba(154, 90, 0, 0.3);
+        }
+
+        .recovery-banner.bad {
+            background: var(--bad-bg);
+            color: var(--bad);
+            border: 1px solid rgba(164, 38, 44, 0.3);
+        }
+
+        .recovery-banner.ok {
+            background: var(--ok-bg);
+            color: var(--ok);
+            border: 1px solid rgba(22, 125, 74, 0.3);
+        }
+
+        /* Issues banner: completed-but-incomplete cases */
+        .issues-banner {
+            margin: 0 14px 12px;
+            border: 1px solid rgba(164, 38, 44, 0.35);
+            background: var(--bad-bg);
+            color: var(--bad);
+            border-radius: 3px;
+            padding: 8px 12px;
+            font-size: 12px;
+        }
+        .issues-banner.warn {
+            border-color: rgba(154, 90, 0, 0.35);
+            background: var(--warn-bg);
+            color: var(--warn);
+        }
+        .issues-banner .ib-title {
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            font-size: 11px;
+            margin-bottom: 4px;
+        }
+        .issues-banner ul { margin: 0; padding-left: 18px; }
+
+        /* Files detail mini table */
+        .files-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+        .files-table th, .files-table td {
+            text-align: left;
+            padding: 4px 8px;
+            border-bottom: 1px solid var(--bp-line);
+        }
+        .files-table th {
+            background: #f3f5fa;
+            font-weight: 700;
+            color: var(--bp-muted);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .files-table tr.failed td { background: rgba(164, 38, 44, 0.05); }
+        .files-table .err {
+            color: var(--bad);
+            font-size: 11px;
+        }
+
+        /* state chip warning glyph */
+        .state-warn {
+            color: var(--bad);
+            font-weight: 900;
+            margin-left: 3px;
+        }
+
+        .recovery-banner .actions {
+            margin-left: auto;
+            display: flex;
+            gap: 6px;
+        }
+
+        .recovery-banner button {
+            background: #fff;
+            border: 1px solid currentColor;
+            color: inherit;
+            padding: 3px 9px;
+            font-size: 11px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        .actions-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            padding: 12px 14px 16px;
+            border-top: 1px solid var(--bp-line);
+            background: #fbfcfe;
+        }
+
+        .actions-row a {
+            font-size: 12px;
+        }
+
+        .btn.danger {
+            background: var(--bad);
+            color: #fff;
+            border: 1px solid var(--bad);
+            font-weight: 700;
+        }
+        .btn.danger:hover {
+            filter: brightness(1.1);
+        }
+
+        /* Legend at bottom */
+        .legend {
+            margin-top: 14px;
+            padding: 10px 14px;
+            background: #fff;
+            border: 1px solid var(--bp-line);
+            font-size: 12px;
+            color: var(--bp-muted);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .legend strong {
+            color: var(--bp-text);
+        }
+
+        .legend .key {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .flex1 {
+            flex: 1;
+        }
+
+        /* Submission state lifecycle visualization */
+        .lifecycle {
+            margin: 0 0 14px;
+            padding: 10px 14px;
+            background: #fff;
+            border: 1px solid var(--bp-line);
+            border-left: 4px solid #c97a17;
+        }
+
+        .lifecycle .lc-title {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--bp-muted);
+            margin: 0 0 8px;
+        }
+
+        .lifecycle .lc-row {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 4px;
+            font-size: 12px;
+        }
+
+        .lifecycle .lc-step {
+            padding: 2px 4px;
+            background: transparent;
+            color: var(--bp-muted);
+            border: none;
+            font-weight: 600;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .lifecycle .lc-step.done {
+            color: var(--ok);
+        }
+
+        .lifecycle .lc-step.current {
+            color: var(--warn);
+            text-decoration: underline;
+            text-decoration-thickness: 2px;
+            text-underline-offset: 3px;
+        }
+
+        .lifecycle .lc-step.failed {
+            color: var(--bad);
+        }
+
+        .lifecycle .lc-arrow {
+            color: #b8bdcb;
+            font-size: 14px;
+        }
+
+        .lifecycle .lc-boundary {
+            display: inline-block;
+            margin: 0 4px;
+            color: var(--bp-muted);
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            font-style: italic;
+            opacity: 0.75;
+        }
+
+        .lifecycle .lc-note {
+            margin-top: 6px;
+            font-size: 11px;
+            color: var(--bp-muted);
+        }
+
+        .lifecycle.lc-embedded {
+            margin: 0;
+            border-left: none;
+            border: none;
+            border-bottom: 1px solid var(--bp-line);
+        }
+
+        @media (max-width: 1100px) {
+            .detail-body {
+                grid-template-columns: 1fr;
+            }
+
+            .detail-meta {
+                border-right: none;
+                border-bottom: 1px solid var(--bp-line);
+            }
+
+            .layout {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header class="banner">
+        <div class="logo">BIG PICTURE</div>
+        <div>
+            <div class="title">West Virginia Board of Professional Surveyors</div>
+            <div class="subtitle">Registration Management — Form Management</div>
+        </div>
+        <div class="spacer"></div>
+        <span class="mock-tag">Mockup</span>
+    </header>
+
+    <div class="ribbon">
+        <span>admin · Session 00:59:46</span>
+        <span class="spacer flex1"></span>
+        <span>Help</span>
+    </div>
+
+    <div class="layout">
+        <nav class="sidebar">
+            <div class="module">Website</div>
+            <div class="module">eNewsletter</div>
+            <div class="module">Custom Forms</div>
+            <div class="module">Secure Documents</div>
+            <div class="module">Reports</div>
+            <div class="module">Licensure Database</div>
+            <div class="module">Database Security</div>
+            <div class="module">Big Picture System</div>
+            <div class="module active">Form Management</div>
+            <div class="module">System Errors</div>
+            <div class="module">Logs</div>
+        </nav>
+
+        <main class="main">
+            <div class="page-header">Form Management</div>
+
+            <div class="section-tabs">
+                <div class="tab on">Form Submissions</div>
+                <div class="tab">Form Fields</div>
+                <div class="tab">Form Pages</div>
+                <div class="tab">Forms-Config</div>
+                <div class="tab">Trans B</div>
+                <div class="tab">Trans A</div>
+            </div>
+
+            <div class="mainbody">
+                <!-- Toolbar mirrors legacy controls + adds durable filters -->
+                <div class="toolbar">
+                    <button class="btn">Delete</button>
+                    <button class="btn">Approve</button>
+                    <button class="btn">Replay Pipeline <span class="new-marker">new</span></button>
+                    <button class="btn">Reconcile Payment <span class="new-marker">new</span></button>
+
+                    <span class="spacer"></span>
+
+                    <label>Search:</label>
+                    <input type="text" placeholder="Name, ID, MEMBERSHIP_ID">
+                    <button class="btn">Search</button>
+                    <button class="btn">Search Logs</button>
+
+                    <label for="formTypeFilter">Form Type:</label>
+                    <select id="formTypeFilter" title="Filter by form type">
+                        <option>Surveyor License Renewal - RENEW</option>
+                        <option>Vendor Onboarding</option>
+                        <option>Program Enrollment</option>
+                    </select>
+
+                    <label for="stateFilter">State <span class="new-marker">new</span>:</label>
+                    <select id="stateFilter" title="Filter by durable submission state">
+                        <option value="all">All</option>
+                        <option value="draft">draft</option>
+                        <option value="awaiting_payment">awaiting_payment</option>
+                        <option value="payment_complete">payment_complete</option>
+                        <option value="processing">processing</option>
+                        <option value="completed">completed</option>
+                        <option value="failed">failed</option>
+                        <option value="abandoned">abandoned</option>
+                    </select>
+
+                    <label><input type="radio" name="bot"> Hide Bot Forms: Yes</label>
+                    <label><input type="radio" name="bot" checked> No</label>
+                </div>
+
+                <!-- Lifecycle: explicit submission state model (intent → execution boundary) -->
+                <div class="lifecycle">
+                    <div class="lc-title">Submission state lifecycle <span class="new-marker">new</span></div>
+                    <div class="lc-row">
+                        <span class="lc-step">draft</span>
+                        <span class="lc-arrow">→</span>
+                        <span class="lc-step">awaiting_payment</span>
+                        <span class="lc-boundary">user intent captured</span>
+                        <span class="lc-arrow">→</span>
+                        <span class="lc-step">payment_complete</span>
+                        <span class="lc-arrow">→</span>
+                        <span class="lc-step">processing</span>
+                        <span class="lc-boundary">execution workflow</span>
+                        <span class="lc-arrow">→</span>
+                        <span class="lc-step">completed</span>
+                        <span class="lc-arrow">/</span>
+                        <span class="lc-step failed">failed</span>
+                        <span class="lc-arrow">/</span>
+                        <span class="lc-step failed">abandoned</span>
+                    </div>
+                    <div class="lc-note">
+                        Submission row is created <strong>before</strong> payment, so every failure after this point is
+                        recoverable by a worker.
+                        Payment is an external, reconcilable step. Everything after payment is idempotent and
+                        replayable.
+                    </div>
+                </div>
+
+                <!-- List view: matches legacy columns, adds Stage + Steps + Reconcile -->
+                <table class="grid" id="grid">
+                    <thead>
+                        <tr>
+                            <th class="check"><input type="checkbox" title="select all"></th>
+                            <th class="num">#</th>
+                            <th>Edit</th>
+                            <th>State <span class="new-marker">new</span></th>
+                            <th>Status</th>
+                            <th>Stage <span class="new-marker">new</span></th>
+                            <th>Name</th>
+                            <th>MEMBERSHIP_ID</th>
+                            <th>PDF</th>
+                            <th>Files <span class="new-marker">new</span></th>
+                            <th>Awaiting Updates</th>
+                            <th>Approval <span class="new-marker">new</span></th>
+                            <th>Payment</th>
+                            <th>Reconcile <span class="new-marker">new</span></th>
+                            <th>Steps <span class="new-marker">new</span></th>
+                            <th>Payment Date-Time</th>
+                            <th>Expiration</th>
+                            <th>Created</th>
+                            <th>Last Modified</th>
+                            <th>Last Submitted</th>
+                        </tr>
+                    </thead>
+                    <tbody id="gridBody"></tbody>
+                </table>
+
+                <div class="pagination" id="pageInfo">1-5 of 5 values</div>
+
+                <!-- Detail panel: mirrors detail screenshot, adds durable record fields -->
+                <section class="detail" id="detailPanel"></section>
+
+                <div class="legend">
+                    <span class="key"><span class="chip ok">Done</span> step finished and durable</span>
+                    <span class="key"><span class="chip warn">Pending</span> awaiting work / callback</span>
+                    <span class="key"><span class="chip bad">Blocked</span> failed, replayable</span>
+                    <span class="key"><span class="chip neutral">N/A</span> not required for this submission</span>
+                    <span class="key"><span class="chip ok">completed<span class="state-warn">⚠</span></span> terminal state, but durable record shows unresolved side-effect issues (e.g. missing uploads)</span>
+                    <span class="key"><strong>New columns / fields</strong> = additions from the durable submission
+                        record</span>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Sample records modeled after the legacy list, extended with the durable submission
+        // record fields called out in docs/meeting_notes.md.
+        const records = [
+            {
+                id: 13148,
+                name: "Gregory King",
+                membershipId: "4018144",
+                state: "processing",
+                status: "Pending",
+                statusTone: "warn",
+                stage: "Awaiting processing",
+                stageTone: "warn",
+                pdf: "",
+                pdfBool: false,
+                files: false,
+                approval: "Auto",
+                approvalTone: "neutral",
+                payment: "NA",
+                paymentRequired: false,
+                paymentComplete: false,
+                reconcileNeeded: false,
+                paymentDate: "",
+                expiration: "6/30/2027",
+                created: "6/6/2026 7:45:37 PM",
+                lastModified: "6/6/2026 7:55:58 PM",
+                lastSubmitted: "6/6/2026 7:47:22 PM",
+                booleans: {
+                    filesSaved: false,
+                    updateRecords: false,
+                    awaitingUpdates: true,
+                    approval: false,
+                    auto: true,
+                    pdfJob: false,
+                    billingHistory: false,
+                    emails: false,
+                    customCode: false,
+                    parents: true,
+                    children: false,
+                    grandchildren: null,
+                    sibling: null,
+                    other: null,
+                    grandparent: true,
+                    readyToProcess: true,
+                    paymentComplete: false,
+                    reconcileNeeded: false,
+                },
+                steps: ["done", "done", "done", "pending", "pending", "pending"],
+                stepsLabel: "3 / 6",
+                pipeline: [
+                    ["7:45 PM", "Submission record created", "Durable row reserved before final certify."],
+                    ["7:46 PM", "Form pages persisted", "Draft values stored in temp."],
+                    ["7:47 PM", "User certified / submitted", "ready_to_process set true — no payment required, pipeline started."],
+                    ["—", "Files saved", "Upload step pending."],
+                    ["—", "CRM updated", "Blocked behind file step."],
+                    ["—", "Notifications + custom code", "Will run once files + CRM finish."],
+                ],
+                recovery: { tone: "warn", text: "Processing did not finish after certify. Recovery worker will resume the pipeline.", action: "Resume pipeline" },
+            },
+            {
+                id: 13142,
+                name: "(no name on record)",
+                membershipId: "0",
+                state: "draft",
+                status: "In Progress",
+                statusTone: "neutral",
+                stage: "Draft / no certify yet",
+                stageTone: "neutral",
+                pdf: "",
+                pdfBool: false,
+                files: false,
+                approval: "—",
+                approvalTone: "neutral",
+                payment: "",
+                paymentRequired: false,
+                paymentComplete: false,
+                reconcileNeeded: false,
+                paymentDate: "",
+                expiration: "",
+                created: "6/6/2026 3:07:33 PM",
+                lastModified: "6/6/2026 3:31:14 PM",
+                lastSubmitted: "6/6/2026 3:31:15 PM",
+                booleans: {
+                    filesSaved: false,
+                    updateRecords: false,
+                    awaitingUpdates: false,
+                    approval: false,
+                    auto: false,
+                    pdfJob: false,
+                    billingHistory: false,
+                    emails: false,
+                    customCode: false,
+                    parents: null,
+                    children: null,
+                    grandchildren: null,
+                    sibling: null,
+                    other: null,
+                    grandparent: null,
+                    readyToProcess: false,
+                    paymentComplete: false,
+                    reconcileNeeded: false,
+                },
+                steps: ["done", "pending", "pending", "pending", "pending", "pending"],
+                stepsLabel: "1 / 6",
+                pipeline: [
+                    ["3:07 PM", "Submission record created", "Durable row exists even though user has not certified."],
+                    ["—", "Pages persisted + certified", "User is still editing."],
+                    ["—", "Files / CRM / PDF / notifications", "Will start after certify or payment."],
+                ],
+                recovery: { tone: "warn", text: "Draft is older than 24 hours — safe to abandon after timeout.", action: "Mark abandoned" },
+            },
+            {
+                id: 13139,
+                name: "Aaron Teets",
+                membershipId: "4017040",
+                state: "awaiting_payment",
+                status: "In Progress",
+                statusTone: "neutral",
+                stage: "Payment pending",
+                stageTone: "warn",
+                pdf: "",
+                pdfBool: false,
+                files: true,
+                approval: "Manual",
+                approvalTone: "warn",
+                payment: "Pending ($100.00)",
+                paymentRequired: true,
+                paymentComplete: false,
+                reconcileNeeded: true,
+                paymentDate: "",
+                expiration: "6/30/2026",
+                created: "6/5/2026 5:13:12 PM",
+                lastModified: "6/5/2026 5:14:07 PM",
+                lastSubmitted: "6/5/2026 5:14:08 PM",
+                booleans: {
+                    filesSaved: true,
+                    updateRecords: false,
+                    awaitingUpdates: true,
+                    approval: false,
+                    auto: false,
+                    pdfJob: false,
+                    billingHistory: false,
+                    emails: false,
+                    customCode: false,
+                    parents: true,
+                    children: false,
+                    grandchildren: null,
+                    sibling: null,
+                    other: null,
+                    grandparent: true,
+                    readyToProcess: false,
+                    paymentComplete: false,
+                    reconcileNeeded: true,
+                },
+                steps: ["done", "done", "done", "blocked", "pending", "pending"],
+                stepsLabel: "3 / 6",
+                pipeline: [
+                    ["5:13 PM", "Submission record created", "Durable row before payment redirect."],
+                    ["5:13 PM", "Files saved", "Uploads persisted."],
+                    ["5:14 PM", "Redirected to payment gateway", "Submission id and token sent with redirect."],
+                    ["—", "Payment callback", "No return seen — reconcile job armed."],
+                    ["—", "CRM + PDF + emails", "Held until payment certainty."],
+                ],
+                recovery: { tone: "bad", text: "Payment return missing for 18 hours. Reconcile required before pipeline can resume.", action: "Reconcile with gateway" },
+            },
+            {
+                id: 13136,
+                name: "Aaron Smith",
+                membershipId: "4018551",
+                state: "processing",
+                status: "In Progress",
+                statusTone: "neutral",
+                stage: "Awaiting approval",
+                stageTone: "warn",
+                pdf: "",
+                pdfBool: false,
+                files: true,
+                approval: "Manual",
+                approvalTone: "warn",
+                payment: "Complete ($100.00)",
+                paymentRequired: true,
+                paymentComplete: true,
+                reconcileNeeded: false,
+                paymentDate: "6/3/2026 10:48:12 PM",
+                expiration: "6/30/2026",
+                created: "6/3/2026 10:48:12 PM",
+                lastModified: "6/3/2026 10:59:18 PM",
+                lastSubmitted: "6/3/2026 10:59:19 PM",
+                booleans: {
+                    filesSaved: true,
+                    updateRecords: true,
+                    awaitingUpdates: true,
+                    approval: false,
+                    auto: false,
+                    pdfJob: false,
+                    billingHistory: true,
+                    emails: false,
+                    customCode: false,
+                    parents: true,
+                    children: true,
+                    grandchildren: false,
+                    sibling: false,
+                    other: null,
+                    grandparent: true,
+                    readyToProcess: true,
+                    paymentComplete: true,
+                    reconcileNeeded: false,
+                },
+                steps: ["done", "done", "done", "done", "pending", "pending"],
+                stepsLabel: "4 / 6",
+                pipeline: [
+                    ["10:48 PM", "Submission record created", "Durable row before payment."],
+                    ["10:50 PM", "Payment captured", "Callback marked payment_complete = true."],
+                    ["10:55 PM", "Files saved + CRM updated", "Idempotent."],
+                    ["10:58 PM", "Billing history created", "Replayable if needed."],
+                    ["—", "PDF + emails", "Waiting on manual approval to proceed."],
+                    ["—", "Custom code", "Held."],
+                ],
+                recovery: { tone: "warn", text: "Awaiting manual approval. Pipeline will resume automatically after approval.", action: "Open approval queue" },
+            },
+            {
+                id: 13117,
+                name: "Ambrose Gmeiner",
+                membershipId: "4016804",
+                state: "completed",
+                status: "Completed",
+                statusTone: "ok",
+                stage: "Closed",
+                stageTone: "ok",
+                pdf: "COMPLETE",
+                pdfBool: true,
+                filesDetail: {
+                    saved: 1,
+                    total: 2,
+                    items: [
+                        { name: "continuing_ed_certificate.pdf", ok: true, size: "385 KB" },
+                        { name: "license_card_front.jpg", ok: false, size: "—", error: "Object missing from S3 bucket (post-write verification failed)" },
+                    ],
+                },
+                issues: [
+                    { severity: "bad", text: "File upload failure: 1 of 2 uploaded files is missing from S3. Payment was captured and downstream steps ran on incomplete data — the file save MUST be retried before this submission can be considered durable." },
+                ],
+                approval: "Auto",
+                approvalTone: "ok",
+                payment: "Complete ($100.00)",
+                paymentRequired: true,
+                paymentComplete: true,
+                reconcileNeeded: false,
+                paymentDate: "5/20/2026 4:37:58 PM",
+                expiration: "6/30/2026",
+                created: "5/20/2026 4:34:49 PM",
+                lastModified: "5/20/2026 4:37:57 PM",
+                lastSubmitted: "5/20/2026 4:37:12 PM",
+                booleans: {
+                    filesSaved: false,
+                    updateRecords: true,
+                    awaitingUpdates: false,
+                    approval: true,
+                    auto: true,
+                    pdfJob: true,
+                    billingHistory: true,
+                    emails: true,
+                    customCode: true,
+                    parents: true,
+                    children: true,
+                    grandchildren: true,
+                    sibling: true,
+                    other: true,
+                    grandparent: true,
+                    readyToProcess: true,
+                    paymentComplete: true,
+                    reconcileNeeded: false,
+                },
+                steps: ["done", "done", "blocked", "done", "done", "done"],
+                stepsLabel: "5 / 6 • 1 failed",
+                pipeline: [
+                    ["4:34 PM", "Submission record created", "Durable row reserved."],
+                    ["4:37 PM", "Payment captured", "Gateway returned cleanly."],
+                    ["4:37 PM", "Files saved", "FAILED — 1 of 2 uploads missing from S3. Needs retry."],
+                    ["4:37 PM", "CRM + PDF", "Ran against partial file set."],
+                    ["4:37 PM", "Billing history + emails + custom code", "All done."],
+                ],
+                recovery: { tone: "bad", text: "File save failed on a completed submission. Retry the failed uploads to make this record durable.", action: "Retry Failed Uploads" },
+            },
+        ];
+
+        const grid = document.getElementById("gridBody");
+        const detailPanel = document.getElementById("detailPanel");
+        let activeId = records[0].id;
+
+        function boolCell(value) {
+            if (value === true) return '<span class="bool t" title="True">✓</span>';
+            if (value === false) return '<span class="bool f" title="False">·</span>';
+            return '<span class="bool na" title="N/A">—</span>';
+        }
+
+        function chip(tone, label) {
+            return `<span class="chip ${tone}">${label}</span>`;
+        }
+
+        function stepsStrip(steps, label) {
+            const segs = steps.map((s) => `<span class="seg ${s}"></span>`).join("");
+            return `<span class="steps">${segs}<span class="label">${label}</span></span>`;
+        }
+
+        function paymentCell(record) {
+            if (!record.paymentRequired) return '<span class="chip neutral">N/A</span>';
+            if (record.paymentComplete) return '<span class="chip ok">Complete</span><div style="font-size:11px;color:var(--bp-muted)">' + (record.payment || '') + '</div>';
+            return '<span class="chip warn">Pending</span><div style="font-size:11px;color:var(--bp-muted)">' + (record.payment || '') + '</div>';
+        }
+
+        function reconcileCell(record) {
+            if (record.reconcileNeeded) return '<span class="chip bad">Reconcile</span>';
+            if (record.paymentRequired) return '<span class="chip ok">OK</span>';
+            return '<span class="bool na">—</span>';
+        }
+
+        const STATE_ORDER = ["draft", "awaiting_payment", "payment_complete", "processing", "completed"];
+        const STATE_TONE = {
+            draft: "neutral",
+            awaiting_payment: "warn",
+            payment_complete: "ok",
+            processing: "warn",
+            completed: "ok",
+            failed: "bad",
+            abandoned: "bad",
+        };
+        function stateChip(state, hasIssues) {
+            const warn = hasIssues ? ' <span class="state-warn" title="has unresolved issues">⚠</span>' : '';
+            return `<span class="chip ${STATE_TONE[state] || 'neutral'}" title="durable submission state">${state}${warn}</span>`;
+        }
+        function filesCell(record) {
+            if (record.filesDetail) {
+                const d = record.filesDetail;
+                if (d.saved === d.total) return `<span class="chip ok">${d.saved}/${d.total}</span>`;
+                return `<span class="chip bad" title="${d.total - d.saved} file(s) failed to save">${d.saved}/${d.total}</span>`;
+            }
+            return boolCell(record.files);
+        }
+        function recordLifecycle(state) {
+            const isTerminal = state === "failed" || state === "abandoned";
+            const currentIdx = STATE_ORDER.indexOf(state);
+            const steps = STATE_ORDER.map((s, i) => {
+                let cls = "";
+                if (!isTerminal && currentIdx >= 0) {
+                    if (i < currentIdx) cls = "done";
+                    else if (i === currentIdx) cls = "current";
+                }
+                return `<span class="lc-step ${cls}">${s}</span>`;
+            }).join('<span class="lc-arrow">→</span>');
+            const tail = isTerminal
+                ? `<span class="lc-arrow">/</span><span class="lc-step failed">${state}</span>`
+                : "";
+            return `<div class="lc-row">${steps}${tail}</div>`;
+        }
+
+        function renderGrid() {
+            grid.innerHTML = records.map((record, i) => `
+                <tr data-id="${record.id}" class="${record.id === activeId ? "selected" : ""}">
+                    <td class="check"><input type="checkbox" title="select"></td>
+                    <td class="num">${i + 1}.</td>
+                    <td><a href="#" onclick="return false;">Edit ${record.id}</a></td>
+                    <td>${stateChip(record.state, record.issues && record.issues.length > 0)}</td>
+                    <td>${chip(record.statusTone, record.status)}</td>
+                    <td>${chip(record.stageTone, record.stage)}</td>
+                    <td class="nowrap">${record.name}</td>
+                    <td class="nowrap">${record.membershipId}</td>
+                    <td>${record.pdf ? chip("ok", record.pdf) : boolCell(false)}</td>
+                    <td>${filesCell(record)}</td>
+                    <td>${record.booleans.awaitingUpdates ? "Yes" : "No"}</td>
+                    <td>${chip(record.approvalTone, record.approval || "—")}</td>
+                    <td>${paymentCell(record)}</td>
+                    <td>${reconcileCell(record)}</td>
+                    <td>${stepsStrip(record.steps, record.stepsLabel)}</td>
+                    <td class="nowrap">${record.paymentDate}</td>
+                    <td class="nowrap">${record.expiration}</td>
+                    <td class="nowrap">${record.created}</td>
+                    <td class="nowrap">${record.lastModified}</td>
+                    <td class="nowrap">${record.lastSubmitted}</td>
+                </tr>
+            `).join("");
+
+            grid.querySelectorAll("tr").forEach((row) => {
+                row.addEventListener("click", (e) => {
+                    if (e.target instanceof HTMLInputElement || e.target instanceof HTMLAnchorElement) return;
+                    activeId = Number(row.dataset.id);
+                    renderGrid();
+                    renderDetail();
+                    detailPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+                });
+            });
+        }
+
+        function boolItem(label, value, opts = {}) {
+            let cls = value === true ? "t" : value === false ? "f" : "na";
+            let txt = value === true ? "TRUE" : value === false ? "false" : "n/a";
+            if (opts.errorWhenFalse && value === false) {
+                cls = "bad t";
+                txt = "FAILED — RETRY";
+            } else if (opts.warnWhenFalse && value === false) {
+                cls = "warn t";
+                txt = "PENDING";
+            }
+            return `<div class="item ${cls}"><span class="lbl">${label}</span><span class="val">${txt}</span></div>`;
+        }
+
+        function renderDetail() {
+            const record = records.find((r) => r.id === activeId) || records[0];
+            const b = record.booleans;
+
+            const debugLinks = ["index.asp", "alert.asp", "contact.asp", "legal.asp", "explain.asp", "pdh.asp", "certify.asp", "receipt.asp", "receipt_nopay.asp"]
+                .map((l) => `<li><a href="#" onclick="return false;">${l}</a></li>`).join("");
+
+            const recoveryBanner = record.recovery
+                ? `<div class="recovery-banner ${record.recovery.tone}">
+                       <span><strong>Recovery:</strong> ${record.recovery.text}</span>
+                       <span class="actions"><button>${record.recovery.action}</button></span>
+                   </div>`
+                : "";
+
+            const issuesBanner = (record.issues && record.issues.length)
+                ? `<div class="issues-banner ${record.issues.some(i => i.severity === 'bad') ? '' : 'warn'}">
+                       <div class="ib-title">⚠ Marked ${record.state} — durable record reports unresolved issues</div>
+                       <ul>${record.issues.map(i => `<li>${i.text}</li>`).join('')}</ul>
+                   </div>`
+                : "";
+
+            const filesDetailSection = record.filesDetail
+                ? `<div class="state-section">
+                       <div class="state-title">Uploaded files <span class="new-marker">new</span></div>
+                       <table class="files-table">
+                           <thead><tr><th>File</th><th>Size</th><th>Status</th></tr></thead>
+                           <tbody>
+                               ${record.filesDetail.items.map(f => `
+                                   <tr class="${f.ok ? '' : 'failed'}">
+                                       <td>${f.name}</td>
+                                       <td>${f.size}</td>
+                                       <td>${f.ok
+                    ? '<span class="chip ok">Saved</span>'
+                    : `<span class="chip bad">Failed</span><div class="err">${f.error}</div>`}</td>
+                                   </tr>`).join('')}
+                           </tbody>
+                       </table>
+                   </div>`
+                : "";
+
+            const lifecycleStrip = `
+                <div class="lifecycle lc-embedded">
+                    <div class="lc-title">This submission's state</div>
+                    ${recordLifecycle(record.state)}
+                </div>`;
+
+            detailPanel.innerHTML = `
+                <div class="detail-header">
+                    <div class="title">Application — ${record.name}</div>
+                    <div class="id">app_renew_id=${record.id}</div>
+                    <button class="btn-list" type="button">List</button>
+                </div>
+
+                ${lifecycleStrip}
+
+                ${issuesBanner}
+
+                ${recoveryBanner}
+
+                <div class="detail-body">
+                    <aside class="detail-meta">
+                        <div class="meta-row"><span class="k">Created:</span><span class="v">${record.created}</span></div>
+                        <div class="meta-row"><span class="k">Type:</span><span class="v">RENEW</span></div>
+                        <div class="meta-row"><span class="k">Status:</span><span class="v">${chip(record.statusTone, record.status)}</span></div>
+                        <div class="meta-row"><span class="k">State:</span><span class="v">${stateChip(record.state, record.issues && record.issues.length > 0)} <span class="new-marker">durable</span></span></div>
+                        <div class="meta-row"><span class="k">Stage:</span><span class="v">${chip(record.stageTone, record.stage)}</span></div>
+                        <div class="meta-row"><span class="k">Internal ID:</span><span class="v">${record.membershipId}</span></div>
+                        <div class="meta-row"><span class="k">Submission ID:</span><span class="v"><code>SUB-${record.id}</code> <span class="new-marker">durable</span></span></div>
+                        <div class="meta-row"><span class="k">Database Record:</span><span class="v"><a href="#" onclick="return false;">Link</a></span></div>
+                        <div class="meta-row"><span class="k">Name:</span><span class="v">${record.name}</span></div>
+                        <div class="meta-row"><span class="k">Files:</span><span class="v">${filesCell(record)}</span></div>
+                        <div class="meta-row">
+                            <span class="k">Debug Links:</span>
+                            <span class="v"><ul class="debug-list">${debugLinks}</ul></span>
+                        </div>
+                        <div class="meta-row"><span class="k">Restore Links:</span><span class="v"><a href="#" onclick="return false;">Show</a></span></div>
+                        <div class="meta-row"><span class="k">PDFs:</span><span class="v">${record.pdfBool ? "COMPLETE Started " + record.lastModified + " Duration 12s" : "Pending"}</span></div>
+                        <div class="meta-row"><span class="k">Email Pages:</span><span class="v">${b.emails ? "receipt.asp · SENT 9s" : "Pending"}</span></div>
+                    </aside>
+
+                    <div class="detail-state">
+                        <div class="state-section">
+                            <div class="state-title">Durable submission values <span class="new-marker">new</span></div>
+                            <div class="bool-grid">
+                                ${boolItem("Submission record created", true)}
+                                ${boolItem("ready_to_process", b.readyToProcess, { warnWhenFalse: true })}
+                                ${boolItem("payment_required", record.paymentRequired)}
+                                ${boolItem("payment_complete", b.paymentComplete, { warnWhenFalse: record.paymentRequired })}
+                                ${boolItem("reconcile_needed", b.reconcileNeeded)}
+                            </div>
+                        </div>
+
+                        <div class="state-section">
+                            <div class="state-title">Processing steps <span class="new-marker">new</span></div>
+                            <div class="bool-grid">
+                                ${boolItem("Files saved", b.filesSaved, { errorWhenFalse: !!record.filesDetail, warnWhenFalse: !record.filesDetail })}
+                                ${boolItem("Update records", b.updateRecords, { warnWhenFalse: true })}
+                                ${boolItem("Awaiting updates", b.awaitingUpdates)}
+                                ${boolItem("Approval", b.approval, { warnWhenFalse: true })}
+                                ${boolItem("Auto", b.auto)}
+                                ${boolItem("PDF job", b.pdfJob, { warnWhenFalse: true })}
+                                ${boolItem("Billing history", b.billingHistory, { warnWhenFalse: true })}
+                                ${boolItem("Emails sent", b.emails, { warnWhenFalse: true })}
+                                ${boolItem("Custom code", b.customCode, { warnWhenFalse: true })}
+                            </div>
+                        </div>
+
+                        <div class="state-section">
+                            <div class="state-title">Relationship completion <span class="new-marker">new</span></div>
+                            <div class="bool-grid">
+                                ${boolItem("Parents", b.parents)}
+                                ${boolItem("Children", b.children)}
+                                ${boolItem("Grandchildren", b.grandchildren)}
+                                ${boolItem("Sibling", b.sibling)}
+                                ${boolItem("Other", b.other)}
+                                ${boolItem("Grandparent", b.grandparent)}
+                            </div>
+                        </div>
+
+                        ${filesDetailSection}
+
+                        <div class="state-section">
+                            <div class="state-title">Pipeline checkpoints</div>
+                            <div class="pipeline">
+                                ${record.pipeline.map(([when, what, note]) => `
+                                    <div class="step">
+                                        <span class="when">${when}</span>
+                                        <span class="what">${what}</span>
+                                        <span class="note">${note}</span>
+                                    </div>
+                                `).join("")}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="actions-row">
+                    <button class="btn">Pend</button>
+                    <button class="btn">Deny</button>
+                    <button class="btn">Rebuild PDF</button>
+                    <button class="btn">Show Data - Minimized</button>
+                    <button class="btn">Show Data - Full</button>
+                    <button class="btn primary">Replay Pipeline <span class="new-marker">new</span></button>
+                    <button class="btn">Force Reconcile <span class="new-marker">new</span></button>
+                    ${record.filesDetail && record.filesDetail.saved < record.filesDetail.total
+                ? '<button class="btn danger">Retry Failed Uploads <span class="new-marker">new</span></button>'
+                : ''}
+                </div>
+            `;
+        }
+
+        renderGrid();
+        renderDetail();
+    </script>
+</body>
+
+</html>
