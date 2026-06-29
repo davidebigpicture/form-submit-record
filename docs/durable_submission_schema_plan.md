@@ -544,7 +544,7 @@ EnsureSubmitRecord(app_renew_id, app_renew_type, membership_id)
 SyncLegacyStatus(app_renew_id, form_status)
 SetDurableState(app_renew_id, durable_state)
 RecomputeSubmitState(app_renew_id)
-SnapshotSubmitConfig(app_renew_id)
+SnapshotConfig(app_renew_id)
 EnsureOperation(app_renew_id, operation_key, configured, source_scope, ...)
 SetOperationState(app_renew_id, operation_key, state, ...)
 SetOperationTrigger(app_renew_id, operation_key, field_name, operator, value)
@@ -856,7 +856,7 @@ Goal: make `apprenewadmin.asp` show the mockup's state using real schema.
 - Payload storage: Oracle `clob` JSON is flexible; separate normalized columns should still exist for commonly queried status fields.
 - Job queue ownership: decide whether PDF/email/file retry uses an existing queue or a new recovery worker.
 - Awaiting Updates history: confirm whether released rows remain in `mem_await` / `mem_det_await` with `approval_dt`; if not, add an event row when released.
-- Approval wording: "Approval" in the legacy UI is overloaded with `app_renew_status = APPROVED`; the mockup should likely call the new derived column "Review" to avoid confusing it with legacy status.
+- Approval wording: resolved — the mockup and admin patch use **Review** for the derived column (`Auto` / `Awaiting` / `Approved`), keeping legacy **Status** for `app_renew_status` values like `APPROVED`.
 
 ## Acceptance Criteria
 

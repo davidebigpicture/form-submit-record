@@ -17,7 +17,11 @@ and visualized in [`../form_submit_tool.html`](../form_submit_tool.html).
 | `www/includes/forms.inc` | copy of `a:\GLOBAL_6-next\www\includes\forms.inc` | Instrumented at existing operation boundaries to record durable submission state. |
 | `admin/apprenewadmin.asp` | copy of `a:\GLOBAL_6-next\admin\apprenewadmin.asp` | Adds **Submission State / Emails / Review** columns sourced from the ledger. |
 | `classes/cFormSubmitLedger.inc` | **new** | Idempotent, fail-safe helper class that writes the ledger. |
-| `db/form_submit_ledger.sql` | **new** | Oracle DDL: tables, sequences, indexes, FKs, and the `v_form_submit_admin` view. |
+| `db/form_submit_ledger.sql` | **new** | Oracle DDL aligned with the plan doc: tables, sequences, indexes, FKs, `v_form_submit_admin` view. |
+
+## Canonical vocabulary
+
+Operation `state` values are shared across the mockup (`OP_STATE`), `db/form_submit_ledger.sql` (`ck_fso_state`), and `cFormSubmitLedger.inc`. UI display labels may differ from stored values (e.g. canonical `awaiting` with `method: "card"` renders as "Awaiting gateway"). Do not persist display-only states like `awaiting_gateway` or `not_required`.
 
 Every change in the two ASP files is wrapped in clearly marked blocks:
 
