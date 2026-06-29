@@ -137,6 +137,10 @@
 
         .main {
             padding: 16px 20px 40px;
+            /* Without this, the wide submissions table forces the 1fr grid track
+               (and the whole page) wider than the viewport, pushing detail-panel
+               content off-screen. Let the grid scroll inside .grid-wrap instead. */
+            min-width: 0;
         }
 
         .page-header {
@@ -993,6 +997,173 @@
             vertical-align: -0.15em;
         }
 
+        /* ============================================================
+           Operation status vocabulary (shared by list + detail)
+           A small, consistent set of states so a non-technical PM can
+           read any operation at a glance:
+             green  = Done            (finished + saved)
+             blue   = Set up          (configured, will run after submit)
+             amber  = Queued/Running/Retrying/Awaiting (working now)
+             red    = Failed          (needs attention / retry)
+             gray   = Not set up/needed
+           ============================================================ */
+        .chip.info {
+            background: #e3edff;
+            color: #1d4ed8;
+            border-color: rgba(29, 78, 216, 0.25);
+        }
+
+        /* Active-work indicators */
+        .chip.live .ic {
+            animation: opSpin 1.1s linear infinite;
+            transform-origin: 50% 50%;
+        }
+        @keyframes opSpin { to { transform: rotate(360deg); } }
+        .chip.pulse-dot::after {
+            content: "";
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: currentColor;
+            margin-left: 6px;
+            vertical-align: middle;
+            animation: opPulse 1.1s ease-in-out infinite;
+        }
+        @keyframes opPulse { 0%, 100% { opacity: 0.25; } 50% { opacity: 1; } }
+
+        /* Operations panel: one card per submission operation */
+        .op-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 10px;
+        }
+        .op-card {
+            border: 1px solid var(--bp-line);
+            border-left: 4px solid #c7cdda;
+            border-radius: 4px;
+            background: #fff;
+            padding: 10px 12px;
+        }
+        .op-card.span2 { grid-column: 1 / -1; }
+        .op-card.ok { border-left-color: var(--ok); }
+        .op-card.info { border-left-color: var(--bp-link); }
+        .op-card.warn { border-left-color: var(--warn); }
+        .op-card.bad { border-left-color: var(--bad); background: rgba(164, 38, 44, 0.03); }
+        .op-card.neutral { border-left-color: #c7cdda; }
+        .op-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        .op-name {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            font-weight: 700;
+            font-size: 12.5px;
+            color: var(--bp-text);
+        }
+        .op-name .ic { opacity: 0.7; }
+        .op-desc {
+            margin-top: 5px;
+            font-size: 11.5px;
+            color: var(--bp-muted);
+            line-height: 1.45;
+        }
+        .op-config {
+            margin-top: 6px;
+            font-size: 11px;
+            color: var(--bp-muted);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .op-config .dot { width: 7px; height: 7px; border-radius: 50%; background: #c7cdda; }
+        .op-config .dot.on { background: var(--ok); }
+        .op-action { margin-top: 9px; }
+
+        /* "Why is this operation active?" — form-level config vs field-condition trigger */
+        .op-why {
+            margin-top: 7px;
+            font-size: 11px;
+            color: var(--bp-muted);
+            display: flex;
+            align-items: baseline;
+            gap: 6px;
+            line-height: 1.4;
+        }
+        .why-tag {
+            display: inline-block;
+            font-size: 9px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            padding: 1px 6px;
+            border-radius: 999px;
+            border: 1px solid transparent;
+            white-space: nowrap;
+            flex: none;
+        }
+        .why-tag.config { background: #e3edff; color: #1d4ed8; border-color: rgba(29, 78, 216, 0.25); }
+        .why-tag.trigger { background: var(--warn-bg); color: var(--warn); border-color: rgba(154, 90, 0, 0.3); }
+        .op-hold {
+            margin-top: 8px;
+            font-size: 11.5px;
+            color: var(--warn);
+            display: flex;
+            align-items: baseline;
+            gap: 6px;
+            line-height: 1.4;
+        }
+        .op-hold .ic { vertical-align: -0.15em; }
+        .email-list .em-why { grid-column: 1 / -1; font-size: 10.5px; color: var(--bp-muted); display: flex; align-items: baseline; gap: 6px; }
+
+        /* Per-field / per-file upload breakdown */
+        .upload-field { margin-top: 8px; }
+        .upload-field .uf-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 8px;
+            font-size: 11.5px;
+        }
+        .upload-field .uf-name { font-weight: 600; color: var(--bp-text); }
+        .upload-field .uf-meta { color: var(--bp-muted); font-size: 11px; white-space: nowrap; }
+        .upload-files { list-style: none; margin: 5px 0 0; padding: 0; }
+        .upload-files li {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 6px;
+            border: 1px solid #edf0f6;
+            border-radius: 3px;
+            margin-top: 3px;
+            font-size: 11.5px;
+            background: #fbfcfe;
+        }
+        .upload-files li.bad { background: rgba(164, 38, 44, 0.05); border-color: rgba(164, 38, 44, 0.25); }
+        .upload-files .uf-fname { flex: 1; word-break: break-word; }
+        .upload-files .uf-size { color: var(--bp-muted); font-size: 11px; white-space: nowrap; }
+
+        /* Email list */
+        .email-list { list-style: none; margin: 8px 0 0; padding: 0; }
+        .email-list li {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 3px 10px;
+            align-items: center;
+            padding: 6px 8px;
+            border: 1px solid #edf0f6;
+            border-radius: 3px;
+            margin-top: 4px;
+            background: #fbfcfe;
+            font-size: 11.5px;
+        }
+        .email-list .em-main { font-weight: 600; color: var(--bp-text); }
+        .email-list .em-sub { grid-column: 1 / -1; color: var(--bp-muted); font-size: 11px; }
+
         @media (max-width: 1100px) {
             .detail-body {
                 grid-template-columns: 1fr;
@@ -1042,6 +1213,11 @@
         <symbol id="ic-minimize" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="8" y1="12" x2="16" y2="12"/></symbol>
         <symbol id="ic-maximize" viewBox="0 0 24 24"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></symbol>
         <symbol id="ic-upload" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></symbol>
+        <symbol id="ic-minus" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/></symbol>
+        <symbol id="ic-paperclip" viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></symbol>
+        <symbol id="ic-send" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></symbol>
+        <symbol id="ic-printer" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></symbol>
+        <symbol id="ic-dollar-sign" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></symbol>
     </svg>
 
     <header class="banner">
@@ -1109,10 +1285,9 @@
 
                     <div class="field">
                         <label for="formTypeFilter">Form Type:</label>
-                        <select id="formTypeFilter" title="Filter by form type">
-                            <option>Surveyor License Renewal - RENEW</option>
-                            <option>Vendor Onboarding</option>
-                            <option>Program Enrollment</option>
+                        <select id="formTypeFilter" title="Switch the submission set — each form type has its own form-level configuration">
+                            <option value="RENEW">Surveyor License Renewal - RENEW</option>
+                            <option value="CONTACT">Contact Change - CONTACT</option>
                         </select>
                     </div>
 
@@ -1177,8 +1352,9 @@
                             <th data-col="membershipId">MEMBERSHIP_ID</th>
                             <th data-col="pdf">PDF</th>
                             <th data-col="files">Files <span class="new-marker">new</span></th>
-                            <th data-col="awaitingUpdates">Awaiting Updates</th>
-                            <th data-col="approval">Approval <span class="new-marker">new</span></th>
+                            <th data-col="emails">Emails <span class="new-marker">new</span></th>
+                            <th data-col="awaitingUpdates" title="Is this submission parked in the staff-review hold right now? Yes = it actually entered and persisted the awaiting-updates state (not just 'configured to maybe need review'). Clears to No once released.">Awaiting Updates</th>
+                            <th data-col="approval" title="Review status: Auto = no staff review needed; Awaiting = held for staff review now; Approved = a staff member reviewed and released it.">Approval</th>
                             <th data-col="payment">Payment <span class="new-marker">+ reconcile</span></th>
                             <th data-col="steps">Steps <span class="new-marker">new</span></th>
                             <th data-col="paymentDate">Payment Date-Time</th>
@@ -1192,19 +1368,22 @@
                 </table>
                 </div>
 
-                <div class="pagination" id="pageInfo">1-7 of 7 values</div>
+                <div class="pagination" id="pageInfo">1-8 of 8 values</div>
 
                 <!-- Detail panel: mirrors detail screenshot, adds durable record fields -->
                 <section class="detail" id="detailPanel"></section>
 
                 <div class="legend">
-                    <span class="key"><span class="chip ok">Done</span> step finished and durable</span>
-                    <span class="key"><span class="chip warn">Pending</span> awaiting work / callback</span>
-                    <span class="key"><span class="chip bad">Blocked</span> failed, replayable</span>
-                    <span class="key"><span class="chip neutral">N/A</span> not required for this submission</span>
-                    <span class="key"><span class="chip ok">completed<span class="state-warn">⚠</span></span> terminal state, but durable record shows unresolved side-effect issues (e.g. missing uploads)</span>
-                    <span class="key"><strong>New columns / fields</strong> = additions from the durable submission
-                        record</span>
+                    <span class="key"><strong>What the statuses mean:</strong></span>
+                    <span class="key"><span class="chip ok"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-check-circle"></use></svg>Done</span> finished &amp; saved</span>
+                    <span class="key"><span class="chip info"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-check-circle"></use></svg>Set up</span> configured, runs after submit</span>
+                    <span class="key"><span class="chip warn"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-clock"></use></svg>Queued / Running / Retrying / Awaiting</span> working now</span>
+                    <span class="key"><span class="chip bad"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-alert"></use></svg>Failed</span> needs attention or a retry</span>
+                    <span class="key"><span class="chip neutral"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-minus"></use></svg>Not set up / needed</span> nothing to do</span>
+                    <span class="key"><span class="chip ok">completed<span class="state-warn">⚠</span></span> terminal state, but durable record shows unresolved issues</span>
+                    <span class="key"><span class="why-tag config">form config</span> set for every submission · <span class="why-tag trigger">triggered</span> turned on by a field value on this submission</span>
+                    <span class="key"><strong>Form Type</strong> sets the expected config — switch it (e.g. RENEW → CONTACT) to see a different submission set</span>
+                    <span class="key"><strong>New</strong> = added by the durable submission record</span>
                 </div>
             </div>
         </main>
@@ -1237,10 +1416,22 @@
                 created: "6/6/2026 7:45:37 PM",
                 lastModified: "6/6/2026 7:55:58 PM",
                 lastSubmitted: "6/6/2026 7:47:22 PM",
+                ops: {
+                    payment: { required: true, method: "card", amount: "$100.00", state: "done", note: "Card charged and confirmed by the gateway." },
+                    files: { fields: [{ label: "Continuing education certificate", required: false, max: 5, uploaded: 0, persisted: 0, items: [] }] },
+                    pdf: { configured: true, state: "running", note: "Building now — the job is running in the queue." },
+                    emails: [
+                        { name: "Payment receipt", to: "gregory.king@example.com", trigger: "After payment", configured: true, state: "done" },
+                        { name: "Signed PDF copy", to: "records@wvpsboard.gov", trigger: "After PDF", configured: true, state: "queued" },
+                    ],
+                    records: { configured: true, state: "pending", note: "Updating the licensure database for this applicant." },
+                    billing: { configured: true, state: "queued", note: "Billing history entry is queued behind the records update." },
+                    customCode: { configured: true, state: "queued", note: "Post-renewal script runs at the end of the pipeline." },
+                },
                 booleans: {
                     filesSaved: false,
                     updateRecords: false,
-                    awaitingUpdates: true,
+                    awaitingUpdates: false,
                     approval: false,
                     auto: true,
                     pdfJob: false,
@@ -1262,11 +1453,11 @@
                 updateStats: { pending: true },
                 pipeline: [
                     ["7:45 PM", "Submission record created", "Durable row reserved before final certify."],
-                    ["7:46 PM", "Form pages persisted", "Draft values stored in temp."],
-                    ["7:47 PM", "User certified / submitted", "ready_to_process set true — no payment required, pipeline started."],
-                    ["—", "Files saved", "Upload step pending."],
-                    ["—", "CRM updated", "Blocked behind file step."],
-                    ["—", "Notifications + custom code", "Will run once files + CRM finish."],
+                    ["7:46 PM", "Payment captured", "Card charged and confirmed by the gateway."],
+                    ["7:47 PM", "User certified / submitted", "ready_to_process set true — pipeline started."],
+                    ["7:47 PM", "PDF build started", "Running in the job queue."],
+                    ["—", "CRM updated", "In progress."],
+                    ["—", "Emails + billing + custom code", "Queued behind the records update."],
                 ],
                 recovery: { tone: "warn", text: "Processing did not finish after certify. Recovery worker will resume the pipeline.", action: "Resume pipeline" },
             },
@@ -1293,6 +1484,18 @@
                 created: "6/6/2026 3:07:33 PM",
                 lastModified: "6/6/2026 3:31:14 PM",
                 lastSubmitted: "6/6/2026 3:31:15 PM",
+                ops: {
+                    payment: { required: true, method: "card", amount: "$100.00", state: "ready", note: "Payment will be requested after the applicant submits the form." },
+                    files: { fields: [{ label: "Continuing education certificate", required: false, max: 5, uploaded: 0, persisted: 0, items: [] }] },
+                    pdf: { configured: true, state: "ready", note: "Will build once the applicant submits." },
+                    emails: [
+                        { name: "Payment receipt", to: "(applicant email)", trigger: "After payment", configured: true, state: "ready" },
+                        { name: "Signed PDF copy", to: "records@wvpsboard.gov", trigger: "After PDF", configured: true, state: "ready" },
+                    ],
+                    records: { configured: true, state: "ready", note: "Runs after the applicant submits." },
+                    billing: { configured: true, state: "ready", note: "Runs after the applicant submits." },
+                    customCode: { configured: true, state: "ready", note: "Post-renewal script runs at the end of the pipeline." },
+                },
                 booleans: {
                     filesSaved: false,
                     updateRecords: false,
@@ -1346,6 +1549,18 @@
                 created: "6/5/2026 5:13:12 PM",
                 lastModified: "6/5/2026 5:14:07 PM",
                 lastSubmitted: "6/5/2026 5:14:08 PM",
+                ops: {
+                    payment: { required: true, method: "card", amount: "$100.00", state: "awaiting_gateway", note: "Redirected to the card gateway 18 hours ago with no result returned. Reconcile to confirm whether the card was actually charged." },
+                    files: { fields: [{ label: "Continuing education certificate", required: false, max: 5, uploaded: 2, persisted: 2, items: [{ name: "ce_hours_2026.pdf", size: "402 KB", state: "done" }, { name: "ce_hours_ethics.pdf", size: "118 KB", state: "done" }] }] },
+                    pdf: { configured: true, state: "ready", note: "Held until the payment result is known." },
+                    emails: [
+                        { name: "Payment receipt", to: "aaron.teets@example.com", trigger: "After payment", configured: true, state: "ready" },
+                        { name: "Signed PDF copy", to: "records@wvpsboard.gov", trigger: "After PDF", configured: true, state: "ready" },
+                    ],
+                    records: { configured: true, state: "ready", note: "Held until payment is confirmed." },
+                    billing: { configured: true, state: "ready", note: "Held until payment is confirmed." },
+                    customCode: { configured: true, state: "ready", note: "Post-renewal script runs at the end of the pipeline." },
+                },
                 booleans: {
                     filesSaved: true,
                     updateRecords: false,
@@ -1379,13 +1594,69 @@
                 recovery: { tone: "bad", text: "Payment return missing for 18 hours. Reconcile required before pipeline can resume.", action: "Reconcile with gateway" },
             },
             {
+                id: 13155,
+                name: "Diane Whitfield",
+                membershipId: "4019870",
+                state: "processing",
+                status: "In Progress",
+                statusTone: "neutral",
+                stage: "Processing",
+                stageTone: "warn",
+                approval: "Auto",
+                approvalTone: "neutral",
+                paymentDate: "",
+                expiration: "6/30/2027",
+                created: "6/14/2026 11:02:09 AM",
+                lastModified: "6/14/2026 11:08:44 AM",
+                lastSubmitted: "6/14/2026 11:05:20 AM",
+                booleans: {
+                    readyToProcess: true,
+                    awaitingUpdates: false,
+                    approval: false,
+                    auto: true,
+                    parents: true,
+                    children: true,
+                    grandchildren: false,
+                    sibling: null,
+                    other: null,
+                    grandparent: true,
+                },
+                steps: ["done", "done", "done", "pending", "pending", "pending"],
+                stepsLabel: "3 / 6",
+                updateStats: { pending: true },
+                ops: {
+                    payment: { required: true, bypassed: true, bypassField: "payment_ty", bypassValue: "K", bypassPage: "pay.asp" },
+                    files: { fields: [
+                        { label: "Continuing education certificates", required: false, max: 5, uploaded: 3, persisted: 3, items: [{ name: "ce_block_a.pdf", size: "512 KB", state: "done" }, { name: "ce_block_b.pdf", size: "288 KB", state: "done" }, { name: "ce_ethics.pdf", size: "96 KB", state: "done" }] },
+                        { label: "License card photo", required: false, max: 1, uploaded: 1, persisted: 1, items: [{ name: "license_front.jpg", size: "174 KB", state: "done" }] },
+                    ] },
+                    pdf: { configured: true, state: "running", note: "Building now — the configured payment page was bypassed, so the pipeline runs without waiting on a gateway." },
+                    emails: [
+                        { name: "Payment receipt", to: "diane.whitfield@example.com", trigger: "After payment", configured: true, state: "not_needed", note: "no payment was taken" },
+                        { name: "Check Receipt page", to: "diane.whitfield@example.com", trigger: "On submit (alternate page)", configured: true, state: "done", why: { source: "trigger", text: "payment_ty = K — the Check Receipt email page is sent instead of the card receipt." } },
+                        { name: "Signed PDF copy", to: "records@wvpsboard.gov", trigger: "After PDF", configured: true, state: "queued" },
+                    ],
+                    records: { configured: true, state: "pending", note: "Updating the licensure database." },
+                    billing: { configured: true, state: "queued", note: "Queued behind the records update." },
+                    customCode: { configured: true, state: "queued", note: "Post-renewal script runs at the end of the pipeline." },
+                },
+                pipeline: [
+                    ["11:02 AM", "Submission record created", "Durable row reserved."],
+                    ["11:04 AM", "Files saved", "All 4 uploads persisted to permanent storage."],
+                    ["11:05 AM", "Submitted via alternate page", "Configured payment page (pay.asp) bypassed because payment_ty = K — no gateway involved."],
+                    ["11:05 AM", "PDF build started", "Running in the job queue."],
+                    ["—", "CRM + emails + billing", "Processing normally — nothing is gated on payment."],
+                ],
+                recovery: { tone: "warn", text: "Alternate payment flow (payment_ty = K): the configured payment page (pay.asp) was bypassed, so no gateway is involved. The pipeline is processing normally.", action: "Resume pipeline" },
+            },
+            {
                 id: 13136,
                 name: "Aaron Smith",
                 membershipId: "4018551",
                 state: "processing",
                 status: "In Progress",
                 statusTone: "neutral",
-                stage: "Awaiting approval",
+                stage: "Awaiting updates",
                 stageTone: "warn",
                 pdf: "",
                 pdfBool: false,
@@ -1401,6 +1672,22 @@
                 created: "6/3/2026 10:48:12 PM",
                 lastModified: "6/3/2026 10:59:18 PM",
                 lastSubmitted: "6/3/2026 10:59:19 PM",
+                ops: {
+                    payment: { required: true, method: "card", amount: "$100.00", state: "done", note: "Card charged and confirmed by the gateway." },
+                    files: { fields: [{ label: "Continuing education certificate", required: false, max: 5, uploaded: 2, persisted: 2, items: [{ name: "ce_hours_2026.pdf", size: "360 KB", state: "done" }, { name: "ethics_cert.pdf", size: "122 KB", state: "done" }] }] },
+                    pdf: { configured: true, state: "ready", note: "Held until the staff review is released." },
+                    emails: [
+                        { name: "Payment receipt", to: "aaron.smith@example.com", trigger: "After payment", configured: true, state: "done" },
+                        { name: "Signed PDF copy", to: "records@wvpsboard.gov", trigger: "After PDF", configured: true, state: "ready" },
+                    ],
+                    records: {
+                        configured: true, state: "pending",
+                        note: "Paused — the record update has not been applied yet.",
+                        awaiting: { source: "trigger", text: "felony_record = Yes — a reviewer must approve before the renewal updates the record." },
+                    },
+                    billing: { configured: true, state: "ready", note: "Runs after the record update is released." },
+                    customCode: { configured: true, state: "ready", note: "Runs after the record update is released." },
+                },
                 booleans: {
                     filesSaved: true,
                     updateRecords: true,
@@ -1421,18 +1708,18 @@
                     paymentComplete: true,
                     reconcileNeeded: false,
                 },
-                steps: ["done", "done", "done", "done", "pending", "pending"],
-                stepsLabel: "4 / 6",
-                updateStats: { updated: 2, inserted: 1, fields: 14 },
+                steps: ["done", "done", "done", "pending", "pending", "pending"],
+                stepsLabel: "3 / 6",
+                updateStats: { pending: true },
                 pipeline: [
                     ["10:48 PM", "Submission record created", "Durable row before payment."],
                     ["10:50 PM", "Payment captured", "Callback marked payment_complete = true."],
-                    ["10:55 PM", "Files saved + CRM updated", "Idempotent."],
-                    ["10:58 PM", "Billing history created", "Replayable if needed."],
-                    ["—", "PDF + emails", "Waiting on manual approval to proceed."],
-                    ["—", "Custom code", "Held."],
+                    ["10:55 PM", "Files saved", "Both uploads persisted."],
+                    ["10:55 PM", "Awaiting Updates triggered", "felony_record = Yes — record update paused for staff review."],
+                    ["—", "Record update + billing", "Held until a reviewer releases the submission."],
+                    ["—", "PDF + emails + custom code", "Held behind the record update."],
                 ],
-                recovery: { tone: "warn", text: "Awaiting manual approval. Pipeline will resume automatically after approval.", action: "Open approval queue" },
+                recovery: { tone: "warn", text: "Awaiting Updates was triggered (felony_record = Yes). A reviewer must release the submission before the record is updated and the pipeline continues.", action: "Open review queue" },
             },
             {
                 id: 13117,
@@ -1454,7 +1741,7 @@
                     ],
                 },
                 issues: [
-                    { severity: "bad", text: "File upload failure: 1 of 2 uploaded files is missing from S3. Payment was captured and downstream steps ran on incomplete data — the file save MUST be retried before this submission can be considered durable." },
+                    { severity: "bad", text: "File save failure: 1 of 3 continuing-education files (ce_block_c.pdf) is still stuck in temporary storage and was never persisted to permanent storage. Payment was captured and downstream steps ran on an incomplete file set — this upload MUST be retried before the submission can be considered durable." },
                 ],
                 approval: "Auto",
                 approvalTone: "ok",
@@ -1467,6 +1754,26 @@
                 created: "5/20/2026 4:34:49 PM",
                 lastModified: "5/20/2026 4:37:57 PM",
                 lastSubmitted: "5/20/2026 4:37:12 PM",
+                ops: {
+                    payment: { required: true, method: "card", amount: "$100.00", state: "done", note: "Card charged and confirmed." },
+                    files: { fields: [
+                        { label: "Continuing education certificates", required: false, max: 5, uploaded: 3, persisted: 2, items: [
+                            { name: "ce_block_a.pdf", size: "385 KB", state: "done" },
+                            { name: "ce_block_b.pdf", size: "241 KB", state: "done" },
+                            { name: "ce_block_c.pdf", size: "—", state: "failed", error: "Still in temporary storage — never persisted to permanent storage. Needs a retry." },
+                        ] },
+                        { label: "License card photo", required: false, max: 1, uploaded: 1, persisted: 1, items: [{ name: "license_card_front.jpg", size: "180 KB", state: "done" }] },
+                        { label: "Supporting documents", required: false, max: 5, uploaded: 0, persisted: 0, items: [] },
+                    ] },
+                    pdf: { configured: true, state: "done", note: "Built and stored." },
+                    emails: [
+                        { name: "Payment receipt", to: "ambrose.g@example.com", trigger: "After payment", configured: true, state: "done" },
+                        { name: "Signed PDF copy", to: "records@wvpsboard.gov", trigger: "After PDF", configured: true, state: "retrying", attempts: "attempt 2 of 5", note: "mailbox temporarily rejected the message" },
+                    ],
+                    records: { configured: true, state: "done", note: "Licensure database updated." },
+                    billing: { configured: true, state: "done", note: "Billing history entry created." },
+                    customCode: { configured: true, state: "done", note: "Post-submit script ran." },
+                },
                 booleans: {
                     filesSaved: false,
                     updateRecords: true,
@@ -1529,6 +1836,18 @@
                 created: "6/12/2026 8:58:40 AM",
                 lastModified: "6/12/2026 9:03:30 AM",
                 lastSubmitted: "6/12/2026 9:00:05 AM",
+                ops: {
+                    payment: { required: true, method: "card", amount: "$100.00", state: "done", note: "Card charged and confirmed." },
+                    files: { fields: [{ label: "Continuing education certificate", required: false, max: 5, uploaded: 2, persisted: 2, items: [{ name: "continuing_ed_certificate.pdf", size: "412 KB", state: "done" }, { name: "license_card_front.jpg", size: "180 KB", state: "done" }] }] },
+                    pdf: { configured: true, state: "done", note: "Built and stored." },
+                    emails: [
+                        { name: "Payment receipt", to: "maria.alvarez@example.com", trigger: "After payment", configured: true, state: "done" },
+                        { name: "Signed PDF copy", to: "records@wvpsboard.gov", trigger: "After PDF", configured: true, state: "done" },
+                    ],
+                    records: { configured: true, state: "done", note: "Licensure database updated." },
+                    billing: { configured: true, state: "done", note: "Billing history entry created." },
+                    customCode: { configured: true, state: "done", note: "Post-submit script ran." },
+                },
                 booleans: {
                     filesSaved: true,
                     updateRecords: true,
@@ -1585,6 +1904,18 @@
                 created: "5/2/2026 1:10:45 PM",
                 lastModified: "5/4/2026 2:00:00 AM",
                 lastSubmitted: "5/2/2026 1:12:30 PM",
+                ops: {
+                    payment: { required: true, method: "card", amount: "$100.00", state: "done", note: "Card charged and confirmed — money was collected." },
+                    files: { fields: [{ label: "Continuing education certificate", required: false, max: 5, uploaded: 1, persisted: 1, items: [{ name: "ce_summary.pdf", size: "210 KB", state: "done" }] }] },
+                    pdf: { configured: true, state: "queued", note: "Never started — the pipeline halted at the CRM step." },
+                    emails: [
+                        { name: "Payment receipt", to: "n.boone@example.com", trigger: "After payment", configured: true, state: "done" },
+                        { name: "Signed PDF copy", to: "records@wvpsboard.gov", trigger: "After PDF", configured: true, state: "queued" },
+                    ],
+                    records: { configured: true, state: "failed", note: "3 attempts failed (1:13, 1:43, 2:13 PM) with HTTP 500. Retry budget exhausted and the job was moved to the dead-letter queue." },
+                    billing: { configured: true, state: "queued", note: "Never reached." },
+                    customCode: { configured: true, state: "queued", note: "Never reached — the pipeline halted at the CRM step." },
+                },
                 booleans: {
                     filesSaved: true,
                     updateRecords: false,
@@ -1623,6 +1954,177 @@
             },
         ];
 
+        // CONTACT — "Contact Change" form type. Different form-level config than RENEW:
+        // no payment, no billing, no custom code. "Awaiting Updates" is NOT a form-level
+        // setting here — it is triggered only when the applicant submits a name change
+        // (which requires a proof upload). Email/phone-only changes skip uploads + review.
+        const contactRecords = [
+            {
+                id: 13201,
+                formType: "CONTACT",
+                name: "Janet Pearce",
+                membershipId: "4012880",
+                state: "completed",
+                status: "Completed",
+                statusTone: "ok",
+                stage: "Closed",
+                stageTone: "ok",
+                approval: "Auto",
+                approvalTone: "ok",
+                paymentDate: "",
+                expiration: "",
+                created: "6/20/2026 9:14:02 AM",
+                lastModified: "6/20/2026 9:15:10 AM",
+                lastSubmitted: "6/20/2026 9:14:40 AM",
+                ops: {
+                    payment: { required: false, method: "none", state: "not_required" },
+                    files: { fields: [{ label: "Proof of name change", required: false, max: 2, uploaded: 0, persisted: 0, items: [] }] },
+                    pdf: { configured: true, state: "done", note: "Confirmation PDF built and stored." },
+                    emails: [],
+                    records: { configured: true, state: "done", note: "Email + phone updated on the contact record immediately — no review needed for this change type." },
+                    billing: { configured: false, state: "not_configured" },
+                    customCode: { configured: false, state: "not_configured" },
+                },
+                booleans: {
+                    readyToProcess: true,
+                    awaitingUpdates: false,
+                    approval: true,
+                    auto: true,
+                    parents: null,
+                    children: null,
+                    grandchildren: null,
+                    sibling: null,
+                    other: null,
+                    grandparent: null,
+                },
+                steps: ["done", "done", "done", "done"],
+                stepsLabel: "Done",
+                updateStats: { updated: 1, inserted: 0, fields: 2 },
+                pipeline: [
+                    ["9:14 AM", "Submission record created", "Durable row reserved before certify."],
+                    ["9:14 AM", "User certified / submitted", "Email + phone change only — no proof upload, no review needed."],
+                    ["9:14 AM", "Record updated", "Contact email + phone applied immediately."],
+                    ["9:15 AM", "Confirmation PDF built", "PDF generated and stored — pipeline complete. This form type does not send emails."],
+                ],
+                recovery: { tone: "ok", text: "All steps completed. A simple email/phone change needs no payment, no uploads, and no staff review.", action: "View receipt" },
+            },
+            {
+                id: 13202,
+                formType: "CONTACT",
+                name: "Robert Castillo",
+                membershipId: "4013447",
+                state: "processing",
+                status: "In Progress",
+                statusTone: "neutral",
+                stage: "Awaiting updates",
+                stageTone: "warn",
+                approval: "Manual",
+                approvalTone: "warn",
+                paymentDate: "",
+                expiration: "",
+                created: "6/21/2026 2:31:50 PM",
+                lastModified: "6/21/2026 2:34:05 PM",
+                lastSubmitted: "6/21/2026 2:33:12 PM",
+                ops: {
+                    payment: { required: false, method: "none", state: "not_required" },
+                    files: { fields: [{ label: "Proof of name change", required: true, max: 2, uploaded: 1, persisted: 1, items: [{ name: "marriage_certificate.pdf", size: "640 KB", state: "done" }] }] },
+                    pdf: { configured: true, state: "ready", note: "Held until the name-change review is released." },
+                    emails: [],
+                    records: {
+                        configured: true, state: "pending",
+                        note: "Paused — the name change has not been applied to the record yet.",
+                        awaiting: { source: "trigger", text: "name_change = Yes — staff must review the uploaded proof before the contact record is updated." },
+                    },
+                    billing: { configured: false, state: "not_configured" },
+                    customCode: { configured: false, state: "not_configured" },
+                },
+                booleans: {
+                    readyToProcess: true,
+                    awaitingUpdates: true,
+                    approval: false,
+                    auto: false,
+                    parents: null,
+                    children: null,
+                    grandchildren: null,
+                    sibling: null,
+                    other: null,
+                    grandparent: null,
+                },
+                steps: ["done", "done", "pending", "pending"],
+                stepsLabel: "2 / 4",
+                updateStats: { pending: true },
+                pipeline: [
+                    ["2:31 PM", "Submission record created", "Durable row reserved before certify."],
+                    ["2:33 PM", "Files saved", "Proof of name change (marriage_certificate.pdf) persisted to permanent storage."],
+                    ["2:33 PM", "Awaiting Updates triggered", "name_change = Yes — record update paused for staff review."],
+                    ["—", "Record update", "Held until a reviewer approves the proof."],
+                    ["—", "Confirmation PDF", "Held behind the record update. This form type does not send emails."],
+                ],
+                recovery: { tone: "warn", text: "Awaiting Updates was triggered (name_change = Yes). A reviewer must approve the uploaded proof before the name change is applied.", action: "Open review queue" },
+            },
+            {
+                id: 13203,
+                formType: "CONTACT",
+                name: "Linda Okafor",
+                membershipId: "4014902",
+                state: "completed",
+                status: "Completed",
+                statusTone: "ok",
+                stage: "Closed",
+                stageTone: "ok",
+                approval: "Manual",
+                approvalTone: "ok",
+                paymentDate: "",
+                expiration: "",
+                created: "6/18/2026 11:40:22 AM",
+                lastModified: "6/19/2026 9:05:48 AM",
+                lastSubmitted: "6/18/2026 11:41:30 AM",
+                ops: {
+                    payment: { required: false, method: "none", state: "not_required" },
+                    files: { fields: [{ label: "Proof of name change", required: true, max: 2, uploaded: 1, persisted: 1, items: [{ name: "court_order_name_change.pdf", size: "512 KB", state: "done" }] }] },
+                    pdf: { configured: true, state: "done", note: "Confirmation PDF built and stored after the review was released." },
+                    emails: [],
+                    records: {
+                        configured: true, state: "done", reviewed: true,
+                        note: "Name change applied after staff reviewed and released the Awaiting Updates hold.",
+                    },
+                    billing: { configured: false, state: "not_configured" },
+                    customCode: { configured: false, state: "not_configured" },
+                },
+                booleans: {
+                    readyToProcess: true,
+                    awaitingUpdates: false,
+                    approval: true,
+                    auto: false,
+                    parents: null,
+                    children: null,
+                    grandchildren: null,
+                    sibling: null,
+                    other: null,
+                    grandparent: null,
+                },
+                steps: ["done", "done", "done", "done"],
+                stepsLabel: "Done",
+                updateStats: { updated: 1, inserted: 0, fields: 3 },
+                pipeline: [
+                    ["6/18 11:40 AM", "Submission record created", "Durable row reserved before certify."],
+                    ["6/18 11:41 AM", "Files saved", "Proof of name change (court_order_name_change.pdf) persisted."],
+                    ["6/18 11:41 AM", "Awaiting Updates triggered", "name_change = Yes — held for staff review."],
+                    ["6/19 9:05 AM", "Reviewer released hold", "Staff approved the proof — record update resumed."],
+                    ["6/19 9:05 AM", "Record updated + confirmation PDF", "Name change applied; confirmation PDF built. This form type does not send emails."],
+                ],
+                recovery: { tone: "ok", text: "Name change reviewed, approved, and applied. All steps completed. No action required.", action: "View receipt" },
+            },
+        ];
+
+        // Each form type carries its own expected configuration; switching the Form Type
+        // dropdown swaps the visible submission set.
+        const recordSets = { RENEW: records, CONTACT: contactRecords };
+        let activeType = "RENEW";
+        function currentRecords() {
+            return recordSets[activeType] || records;
+        }
+
         const grid = document.getElementById("gridBody");
         const detailPanel = document.getElementById("detailPanel");
         let activeId = null;
@@ -1646,12 +2148,102 @@
             return `<span class="steps">${segs}<span class="label">${label}</span></span>`;
         }
 
-        function paymentCell(record) {
-            if (!record.paymentRequired) return '<span class="chip neutral">N/A</span>';
-            const amount = record.payment ? '<div style="font-size:11px;color:var(--bp-muted)">' + record.payment + '</div>' : '';
-            if (record.paymentComplete) return '<span class="chip ok">' + icon('check-circle') + 'Complete</span>' + amount;
-            if (record.reconcileNeeded) return '<span class="chip warn">' + icon('clock') + 'Pending</span> <span class="chip bad" title="Payment outcome unknown — reconcile with the gateway">' + icon('alert') + 'Reconcile</span>' + amount;
-            return '<span class="chip warn">' + icon('clock') + 'Pending</span>' + amount;
+        // Unified operation-status vocabulary (shared by list + detail).
+        // Keeps non-technical users oriented: one color + word + icon per state.
+        const OP_STATE = {
+            not_configured: { label: "Not set up", tone: "neutral", icon: "minus" },
+            not_needed: { label: "Not needed", tone: "neutral", icon: "minus" },
+            ready: { label: "Set up", tone: "info", icon: "check-circle" },
+            queued: { label: "Queued", tone: "warn", icon: "clock", anim: "pulse" },
+            running: { label: "Running", tone: "warn", icon: "refresh", anim: "spin" },
+            pending: { label: "In progress", tone: "warn", icon: "clock", anim: "pulse" },
+            retrying: { label: "Retrying", tone: "warn", icon: "refresh", anim: "spin" },
+            awaiting: { label: "Awaiting response", tone: "warn", icon: "clock", anim: "pulse" },
+            done: { label: "Done", tone: "ok", icon: "check-circle" },
+            failed: { label: "Failed", tone: "bad", icon: "alert" },
+        };
+
+        function stateTone(state) {
+            return (OP_STATE[state] || OP_STATE.not_configured).tone;
+        }
+
+        function opChip(state, opts = {}) {
+            const m = OP_STATE[state] || OP_STATE.not_configured;
+            const anim = m.anim === "spin" ? " live" : (m.anim === "pulse" ? " pulse-dot" : "");
+            const label = opts.label != null ? opts.label : m.label;
+            const title = opts.title || label;
+            return `<span class="chip ${m.tone}${anim}" title="${title}">${icon(m.icon)}${label}</span>`;
+        }
+
+        // Files: a field may hold several uploaded files; each must be persisted (temp -> S3).
+        function filesSummary(files) {
+            const fields = (files && files.fields) || [];
+            let uploaded = 0, persisted = 0, failed = 0, retrying = 0, pending = 0;
+            fields.forEach((f) => {
+                uploaded += f.uploaded || 0;
+                persisted += f.persisted || 0;
+                (f.items || []).forEach((it) => {
+                    if (it.state === "failed") failed++;
+                    else if (it.state === "retrying") retrying++;
+                    else if (it.state === "pending" || it.state === "running" || it.state === "queued") pending++;
+                });
+            });
+            let state = "not_needed";
+            if (uploaded > 0) {
+                if (failed > 0) state = "failed";
+                else if (retrying > 0) state = "retrying";
+                else if (pending > 0 || persisted < uploaded) state = "pending";
+                else state = "done";
+            }
+            return { uploaded, persisted, failed, retrying, pending, state };
+        }
+
+        function gridFilesCell(files) {
+            const s = filesSummary(files);
+            if (s.uploaded === 0) return '<span class="bool na" title="No files uploaded">—</span>';
+            return opChip(s.state, { label: `${s.persisted}/${s.uploaded}`, title: `${s.persisted} of ${s.uploaded} uploaded files saved to permanent storage` });
+        }
+
+        function gridEmailsCell(emails) {
+            // "not_needed" emails are configured for the form but skipped on this submission
+            // (e.g. a payment receipt when payment was bypassed) — leave them out of the count.
+            const cfg = (emails || []).filter((e) => e.configured && e.state !== "not_needed");
+            if (!cfg.length) return '<span class="bool na" title="No emails to send for this submission">—</span>';
+            const by = (s) => cfg.filter((e) => e.state === s).length;
+            const done = by("done"), failed = by("failed"), retrying = by("retrying"), running = by("running");
+            const waiting = cfg.length - done - failed - retrying - running; // queued / ready / pending / awaiting
+            // Icon reflects the in-flight email(s): spinner = actively working (retrying/running),
+            // clock = waiting its turn. The count only says how many are already sent.
+            let state = "pending";
+            if (failed) state = "failed";
+            else if (retrying) state = "retrying";
+            else if (running) state = "running";
+            else if (done === cfg.length) state = "done";
+            const parts = [`${done} of ${cfg.length} sent`];
+            if (failed) parts.push(`${failed} failed`);
+            if (retrying) parts.push(`${retrying} retrying after a failure (spinner)`);
+            if (running) parts.push(`${running} sending now (spinner)`);
+            if (waiting) parts.push(`${waiting} queued / waiting (clock)`);
+            return opChip(state, { label: `${done}/${cfg.length}`, title: parts.join(" · ") });
+        }
+
+        function gridPdfCell(pdf) {
+            if (!pdf || !pdf.configured) return '<span class="bool na" title="PDF not configured">—</span>';
+            return opChip(pdf.state);
+        }
+
+        function gridPaymentCell(p) {
+            if (!p || !p.required) return '<span class="chip neutral">' + icon('minus') + 'Not required</span>';
+            if (p.bypassed) return `<span class="chip neutral" title="Configured payment page bypassed by an alternate page — no gateway involved">${icon('minus')}NA</span> <span style="font-size:11px;color:var(--bp-muted)">(${p.bypassField} = ${p.bypassValue})</span>`;
+            const amt = p.amount ? ' ' + p.amount : '';
+            switch (p.state) {
+                case 'done': return `<span class="chip ok">${icon('check-circle')}Paid${amt}</span>`;
+                case 'awaiting_gateway': return `<span class="chip warn pulse-dot" title="Waiting on the card gateway">${icon('clock')}Awaiting gateway</span>`;
+                case 'pending': return `<span class="chip warn pulse-dot">${icon('clock')}Pending${amt}</span>`;
+                case 'failed': return `<span class="chip bad">${icon('alert')}Failed</span>`;
+                case 'ready': return `<span class="chip info">${icon('check-circle')}Set up${amt}</span>`;
+                default: return '<span class="bool na">—</span>';
+            }
         }
 
         const STATE_ORDER = ["draft", "awaiting_payment", "payment_complete", "processing", "completed"];
@@ -1664,17 +2256,222 @@
             failed: "bad",
             abandoned: "bad",
         };
+        // Plain-language meaning of each durable state (shown on hover for PMs).
+        const STATE_DESC = {
+            draft: "Started but not yet submitted — the applicant is still filling out the form. Nothing has run.",
+            awaiting_payment: "Submitted and sent to the payment page — waiting for the payment result to come back.",
+            payment_complete: "Payment confirmed. The post-submission steps are about to run.",
+            processing: "Submitted (and paid, if required). The system is now running the back-end steps — saving files, updating the record, building the PDF, sending any emails. This is the working state between submit and done.",
+            completed: "Every step finished and was saved durably. Nothing left to do.",
+            failed: "A step failed and the submission could not finish on its own — needs attention.",
+            abandoned: "Never completed — e.g. payment was never finished, or retries were exhausted.",
+        };
         function stateChip(state, hasIssues) {
             const warn = hasIssues ? ' <span class="state-warn" title="has unresolved issues">⚠</span>' : '';
-            return `<span class="chip ${STATE_TONE[state] || 'neutral'}" title="durable submission state">${state}${warn}</span>`;
+            const desc = STATE_DESC[state] || "durable submission state";
+            return `<span class="chip ${STATE_TONE[state] || 'neutral'}" title="${desc}">${state}${warn}</span>`;
         }
-        function filesCell(record) {
-            if (record.filesDetail) {
-                const d = record.filesDetail;
-                if (d.saved === d.total) return `<span class="chip ok">${icon('check-circle')}${d.saved}/${d.total}</span>`;
-                return `<span class="chip bad" title="${d.total - d.saved} file(s) failed to save">${icon('alert')}${d.saved}/${d.total}</span>`;
+        function opCardTone(state, configured) {
+            if (configured === false) return "neutral";
+            return stateTone(state);
+        }
+
+        // Review / approval status — derived from the ACTUAL hold state (one source of truth),
+        // not a separate flag. This is why the Approval column can read "Awaiting" while a
+        // submission is parked for staff review, then "Approved" once a reviewer releases it.
+        function awaitingHold(record) {
+            const r = record.ops && record.ops.records;
+            return !!(r && r.awaiting);
+        }
+        function approvalStatus(record) {
+            const r = record.ops && record.ops.records;
+            if (r && r.awaiting) return { label: "Awaiting", tone: "warn", title: "Held for staff review right now — " + r.awaiting.text };
+            if (r && r.reviewed) return { label: "Approved", tone: "ok", title: "A staff member reviewed and released this submission." };
+            if (record.state === "draft") return { label: "—", tone: "neutral", title: "Not submitted yet — no review status." };
+            return { label: "Auto", tone: "neutral", title: "Approved automatically — no staff review was required for this submission." };
+        }
+        function approvalCell(record) {
+            const a = approvalStatus(record);
+            return `<span class="chip ${a.tone}" title="${a.title}">${a.label}</span>`;
+        }
+
+        // Why is an operation active? "form config" = set for every submission of this
+        // form; "triggered" = turned on by a field value on this particular submission.
+        function whyInline(why) {
+            if (!why) return "";
+            const tag = why.source === "trigger"
+                ? '<span class="why-tag trigger">triggered</span>'
+                : '<span class="why-tag config">form config</span>';
+            return `${tag}<span>${why.text}</span>`;
+        }
+        function whyLine(why) {
+            return why ? `<div class="op-why">${whyInline(why)}</div>` : "";
+        }
+
+        function opCard(o) {
+            const cfgLine = (o.configured === undefined)
+                ? ""
+                : `<div class="op-config"><span class="dot ${o.configured ? "on" : "off"}"></span>${o.configured ? "Configured for this form" : "Not configured for this form"}</div>`;
+            return `<div class="op-card ${o.tone || "neutral"}${o.span ? " span2" : ""}">
+                <div class="op-head"><span class="op-name">${icon(o.icon)} ${o.name}</span>${o.statusHtml}</div>
+                ${cfgLine}
+                ${o.desc ? `<div class="op-desc">${o.desc}</div>` : ""}
+                ${whyLine(o.why)}
+                ${o.body || ""}
+                ${o.action ? `<div class="op-action">${o.action}</div>` : ""}
+            </div>`;
+        }
+
+        function paymentOpCard(p) {
+            if (!p) return "";
+            if (!p.required) {
+                return opCard({
+                    icon: "dollar-sign", name: "Payment", tone: "neutral", configured: false,
+                    statusHtml: `<span class="chip neutral">${icon('minus')}Not required</span>`,
+                    desc: "This form flow does not require a payment.",
+                });
             }
-            return boolCell(record.files);
+            if (p.bypassed) {
+                return opCard({
+                    icon: "dollar-sign", name: "Payment", tone: "neutral",
+                    statusHtml: `<span class="chip neutral">${icon('minus')}NA (${p.bypassField} = ${p.bypassValue})</span>`,
+                    desc: `The configured payment page (<code>${p.bypassPage || "pay.asp"}</code>) was bypassed by an alternate page (set in the <strong>Form Pages</strong> tool) that handles Create PDF / Update Record / Set Submission Status directly. No payment gateway was involved.`,
+                    why: { source: "trigger", text: `${p.bypassField} = ${p.bypassValue} routed this submission to the alternate page.` },
+                });
+            }
+            const methodLabel = p.method === "card" ? "Pay by card" : "Payment";
+            let statusHtml, action = "";
+            switch (p.state) {
+                case "done": statusHtml = opChip("done", { label: "Paid" }); break;
+                case "awaiting_gateway":
+                    statusHtml = opChip("awaiting", { label: "Awaiting gateway" });
+                    action = `<button class="btn">${icon("credit-card")} Reconcile with gateway</button>`;
+                    break;
+                case "pending": statusHtml = opChip("pending"); break;
+                case "failed":
+                    statusHtml = opChip("failed");
+                    action = `<button class="btn">${icon("credit-card")} Reconcile with gateway</button>`;
+                    break;
+                case "ready": statusHtml = opChip("ready"); break;
+                default: statusHtml = `<span class="chip neutral">—</span>`;
+            }
+            const tone = p.state === "done" ? "ok" : p.state === "failed" ? "bad" : p.state === "ready" ? "info" : "warn";
+            const desc = `${methodLabel}${p.amount ? ` — <strong>${p.amount}</strong>` : ""}.${p.note ? " " + p.note : ""}`;
+            return opCard({ icon: "dollar-sign", name: "Payment", tone, statusHtml, desc, action });
+        }
+
+        function filesOpCard(files) {
+            const s = filesSummary(files);
+            const tone = s.uploaded === 0 ? "neutral" : opCardTone(s.state);
+            const statusHtml = s.uploaded === 0
+                ? `<span class="chip neutral">${icon('minus')}No files uploaded</span>`
+                : opChip(s.state, { label: `${s.persisted} of ${s.uploaded} saved` });
+            const fieldsHtml = ((files && files.fields) || [])
+                .filter((f) => (f.uploaded || 0) > 0 || f.required)
+                .map((f) => {
+                    const items = (f.items || []).map((it) => {
+                        const lab = it.state === "done" ? "Saved"
+                            : it.state === "failed" ? "Stuck in temp"
+                            : it.state === "retrying" ? "Retrying"
+                            : it.state === "pending" ? "Saving…"
+                            : (OP_STATE[it.state] || OP_STATE.pending).label;
+                        return `<li class="${it.state === "failed" ? "bad" : ""}">
+                            <span class="uf-fname">${it.name}${it.error ? `<div class="err">${it.error}</div>` : ""}</span>
+                            <span class="uf-size">${it.size || ""}</span>
+                            ${opChip(it.state, { label: lab })}
+                        </li>`;
+                    }).join("");
+                    const need = (f.uploaded || 0) - (f.persisted || 0);
+                    return `<div class="upload-field">
+                        <div class="uf-head">
+                            <span class="uf-name">${f.label}</span>
+                            <span class="uf-meta">${f.uploaded || 0} uploaded · ${f.persisted || 0} saved${need > 0 ? ` · ${need} pending` : ""} · ${f.required ? "required" : "optional"}${f.max ? ` · up to ${f.max}` : ""}</span>
+                        </div>
+                        ${items ? `<ul class="upload-files">${items}</ul>` : ""}
+                    </div>`;
+                }).join("");
+            const need = s.uploaded - s.persisted;
+            const desc = s.uploaded === 0
+                ? "No files were uploaded with this submission."
+                : `Every uploaded file must be moved from temporary storage to permanent storage. ${need > 0 ? `<strong>${need} file(s) still need to be saved.</strong>` : "All uploaded files are saved."}`;
+            const action = s.state === "failed" ? `<button class="btn danger">${icon("upload")} Retry failed saves</button>` : "";
+            return opCard({ icon: "paperclip", name: "Uploaded files", tone, statusHtml, desc, body: fieldsHtml, action, span: true });
+        }
+
+        function pdfOpCard(pdf) {
+            if (!pdf) return "";
+            const tone = opCardTone(pdf.state, pdf.configured);
+            const statusHtml = pdf.configured ? opChip(pdf.state) : `<span class="chip neutral">${icon('minus')}Not set up</span>`;
+            const desc = pdf.configured
+                ? (pdf.note || "")
+                : "This form is not configured to generate a PDF.";
+            const why = pdf.configured
+                ? (pdf.why || { source: "config", text: "Set at the form level — every submission of this form builds a PDF." })
+                : null;
+            return opCard({ icon: "printer", name: "PDF document", tone, statusHtml, desc, why, configured: pdf.configured });
+        }
+
+        // Derive a plain-language "why" for an email from its trigger, unless one is
+        // given explicitly (used for field-condition email pages).
+        function emailWhy(e) {
+            const t = (e.trigger || "").toLowerCase();
+            let text;
+            if (t.includes("after pdf")) text = "Emails the generated PDF after it is built.";
+            else if (t.includes("after payment")) text = "Sent automatically after a successful payment.";
+            else if (t.includes("on submit")) text = "Sent on every submission of this form.";
+            else text = "Configured at the form level.";
+            return { source: "config", text };
+        }
+
+        function emailsOpCard(emails) {
+            const cfg = (emails || []).filter((e) => e.configured);
+            // "active" = configured emails that actually need to send on this submission.
+            const active = cfg.filter((e) => e.state !== "not_needed");
+            const done = active.filter((e) => e.state === "done").length;
+            let overall = "pending";
+            if (!active.length) overall = cfg.length ? "not_needed" : "not_configured";
+            else if (active.some((e) => e.state === "failed")) overall = "failed";
+            else if (active.some((e) => e.state === "retrying")) overall = "retrying";
+            else if (done === active.length) overall = "done";
+            const tone = active.length ? opCardTone(overall) : "neutral";
+            const statusHtml = active.length
+                ? opChip(overall, { label: `${done} of ${active.length} sent` })
+                : `<span class="chip neutral">${icon('minus')}${cfg.length ? "None to send" : "NA"}</span>`;
+            const list = cfg.map((e) => {
+                const lab = e.state === "done" ? "Sent" : e.state === "not_needed" ? "Not sent" : undefined;
+                const extra = e.attempts ? ` (${e.attempts})` : "";
+                const why = e.why || emailWhy(e);
+                return `<li>
+                    <span class="em-main">${e.name}</span>
+                    ${opChip(e.state, { label: lab })}
+                    <span class="em-sub">${e.trigger} → ${e.to}${extra}${e.note ? ` — ${e.note}` : ""}</span>
+                    <span class="em-why">${whyInline(why)}</span>
+                </li>`;
+            }).join("");
+            const desc = cfg.length
+                ? "Emails are sent through the job queue. Each one is tracked from queued → sent (or failed / retrying)."
+                : "Not applicable — this form type does not send any emails.";
+            return opCard({ icon: "send", name: "Emails", tone, statusHtml, desc, body: cfg.length ? `<ul class="email-list">${list}</ul>` : "", span: true });
+        }
+
+        function recordsOpCard(op, updateStats) {
+            if (!op) return "";
+            const tone = op.awaiting ? "warn" : opCardTone(op.state, op.configured);
+            const statusHtml = op.configured === false
+                ? `<span class="chip neutral">${icon('minus')}Not set up</span>`
+                : op.awaiting ? opChip("pending", { label: "Awaiting review" }) : opChip(op.state);
+            const holdHtml = op.awaiting
+                ? `<div class="op-hold">${icon("pause-circle")} <span><strong>Awaiting Updates</strong> — held for staff review before the record is updated.</span></div>${whyLine(op.awaiting)}`
+                : "";
+            return opCard({ icon: "database", name: "Record updates (CRM)", tone, statusHtml, desc: op.note || "", body: holdHtml + updateStatsLine({ updateStats }) });
+        }
+
+        function genericOpCard(name, ic, op) {
+            if (!op) return "";
+            const configured = op.configured !== false;
+            const tone = opCardTone(op.state, configured);
+            const statusHtml = configured ? opChip(op.state) : `<span class="chip neutral">${icon('minus')}Not set up</span>`;
+            return opCard({ icon: ic, name, tone, statusHtml, desc: op.note || "", configured });
         }
         function recordLifecycle(state) {
             const isTerminal = state === "failed" || state === "abandoned";
@@ -1694,7 +2491,10 @@
         }
 
         function renderGrid() {
-            grid.innerHTML = records.map((record, i) => `
+            const list = currentRecords();
+            const pageInfo = document.getElementById("pageInfo");
+            if (pageInfo) pageInfo.textContent = `1-${list.length} of ${list.length} values`;
+            grid.innerHTML = list.map((record, i) => `
                 <tr data-id="${record.id}" class="${record.id === activeId ? "selected" : ""}">
                     <td class="check" data-col="check"><input type="checkbox" title="select"></td>
                     <td class="num" data-col="num">${i + 1}.</td>
@@ -1704,11 +2504,12 @@
                     <td data-col="stage">${chip(record.stageTone, record.stage)}</td>
                     <td class="nowrap" data-col="name">${record.name}</td>
                     <td class="nowrap" data-col="membershipId">${record.membershipId}</td>
-                    <td data-col="pdf">${record.pdf ? chip("ok", record.pdf) : boolCell(false)}</td>
-                    <td data-col="files">${filesCell(record)}</td>
-                    <td data-col="awaitingUpdates">${record.booleans.awaitingUpdates ? "Yes" : "No"}</td>
-                    <td data-col="approval">${chip(record.approvalTone, record.approval || "—")}</td>
-                    <td data-col="payment">${paymentCell(record)}</td>
+                    <td data-col="pdf">${gridPdfCell(record.ops.pdf)}</td>
+                    <td data-col="files">${gridFilesCell(record.ops.files)}</td>
+                    <td data-col="emails">${gridEmailsCell(record.ops.emails)}</td>
+                    <td data-col="awaitingUpdates" title="Is this submission parked in the staff-review hold right now? Yes = it actually entered and persisted the awaiting-updates state (not just 'configured to maybe need review'). Clears to No once a reviewer releases it.">${awaitingHold(record) ? '<span class="chip warn">Yes</span>' : '<span class="chip neutral">No</span>'}</td>
+                    <td data-col="approval" title="Review status: Auto = no staff review needed; Awaiting = held for staff review now; Approved = a staff member reviewed and released it.">${approvalCell(record)}</td>
+                    <td data-col="payment">${gridPaymentCell(record.ops.payment)}</td>
                     <td data-col="steps">${stepsStrip(record.steps, record.stepsLabel)}</td>
                     <td class="nowrap" data-col="paymentDate">${record.paymentDate}</td>
                     <td class="nowrap" data-col="expiration">${record.expiration}</td>
@@ -1762,8 +2563,10 @@
                 return;
             }
             detailPanel.hidden = false;
-            const record = records.find((r) => r.id === activeId) || records[0];
+            const list = currentRecords();
+            const record = list.find((r) => r.id === activeId) || list[0];
             const b = record.booleans;
+            const formType = record.formType || "RENEW";
 
             const debugLinks = ["index.asp", "alert.asp", "contact.asp", "legal.asp", "explain.asp", "pdh.asp", "certify.asp", "receipt.asp", "receipt_nopay.asp"]
                 .map((l) => `<li><a href="#" onclick="return false;">${l}</a></li>`).join("");
@@ -1792,24 +2595,20 @@
                    </div>`
                 : "";
 
-            const filesDetailSection = record.filesDetail
-                ? `<div class="state-section">
-                       <div class="state-title">Uploaded files <span class="new-marker">new</span></div>
-                       <table class="files-table">
-                           <thead><tr><th>File</th><th>Size</th><th>Status</th></tr></thead>
-                           <tbody>
-                               ${record.filesDetail.items.map(f => `
-                                   <tr class="${f.ok ? '' : 'failed'}">
-                                       <td>${f.name}</td>
-                                       <td>${f.size}</td>
-                                       <td>${f.ok
-                    ? '<span class="chip ok">Saved</span>'
-                    : `<span class="chip bad">Failed</span><div class="err">${f.error}</div>`}</td>
-                                   </tr>`).join('')}
-                           </tbody>
-                       </table>
-                   </div>`
-                : "";
+            const ops = record.ops;
+            const operationsSection = `
+                <div class="state-section">
+                    <div class="state-title">${icon("layers")} Operations <span class="new-marker">new</span></div>
+                    <div class="op-grid">
+                        ${paymentOpCard(ops.payment)}
+                        ${pdfOpCard(ops.pdf)}
+                        ${recordsOpCard(ops.records, record.updateStats)}
+                        ${genericOpCard("Billing history", "file-text", ops.billing)}
+                        ${genericOpCard("Custom code", "layers", ops.customCode)}
+                        ${filesOpCard(ops.files)}
+                        ${emailsOpCard(ops.emails)}
+                    </div>
+                </div>`;
 
             const lifecycleStrip = `
                 <div class="lifecycle lc-embedded">
@@ -1820,7 +2619,7 @@
             detailPanel.innerHTML = `
                 <div class="detail-header">
                     <div class="title">Application — ${record.name}</div>
-                    <div class="id">app_renew_id=${record.id}</div>
+                    <div class="id">app_${formType.toLowerCase()}_id=${record.id}</div>
                     <button class="btn-list" type="button">${icon('list')} List</button>
                 </div>
 
@@ -1833,50 +2632,37 @@
                 <div class="detail-body">
                     <aside class="detail-meta">
                         <div class="meta-row"><span class="k">Created:</span><span class="v">${record.created}</span></div>
-                        <div class="meta-row"><span class="k">Type:</span><span class="v">RENEW</span></div>
+                        <div class="meta-row"><span class="k">Type:</span><span class="v">${formType}</span></div>
                         <div class="meta-row"><span class="k">Status:</span><span class="v">${chip(record.statusTone, record.status)}</span></div>
                         <div class="meta-row"><span class="k">State:</span><span class="v">${stateChip(record.state, record.issues && record.issues.length > 0)} <span class="new-marker">durable</span></span></div>
                         <div class="meta-row"><span class="k">Stage:</span><span class="v">${chip(record.stageTone, record.stage)}</span></div>
                         <div class="meta-row"><span class="k">Internal ID:</span><span class="v">${record.membershipId}</span></div>
                         <div class="meta-row"><span class="k">Submission ID:</span><span class="v"><code>SUB-${record.id}</code> <span class="new-marker">durable</span></span></div>
+                        <div class="meta-row" title="Review status: Auto = no staff review needed; Awaiting = held for staff review now; Approved = a staff member reviewed and released it."><span class="k">Approval:</span><span class="v">${approvalCell(record)}</span></div>
+                        <div class="meta-row"><span class="k">Payment:</span><span class="v">${gridPaymentCell(record.ops.payment)}</span></div>
+                        <div class="meta-row"><span class="k">Files:</span><span class="v">${gridFilesCell(record.ops.files)}</span></div>
+                        <div class="meta-row"><span class="k">PDF:</span><span class="v">${gridPdfCell(record.ops.pdf)}</span></div>
+                        <div class="meta-row"><span class="k">Emails:</span><span class="v">${gridEmailsCell(record.ops.emails)}</span></div>
                         <div class="meta-row"><span class="k">Database Record:</span><span class="v"><a href="#" onclick="return false;">Link</a></span></div>
-                        <div class="meta-row"><span class="k">Name:</span><span class="v">${record.name}</span></div>
-                        <div class="meta-row"><span class="k">Files:</span><span class="v">${filesCell(record)}</span></div>
                         <div class="meta-row">
                             <span class="k">Debug Links:</span>
                             <span class="v"><ul class="debug-list">${debugLinks}</ul></span>
                         </div>
                         <div class="meta-row"><span class="k">Restore Links:</span><span class="v"><a href="#" onclick="return false;">Show</a></span></div>
-                        <div class="meta-row"><span class="k">PDFs:</span><span class="v">${record.pdfBool ? "COMPLETE Started " + record.lastModified + " Duration 12s" : "Pending"}</span></div>
-                        <div class="meta-row"><span class="k">Email Pages:</span><span class="v">${b.emails ? "receipt.asp · SENT 9s" : "Pending"}</span></div>
                     </aside>
 
                     <div class="detail-state">
+                        ${operationsSection}
+
                         <div class="state-section">
-                            <div class="state-title">Durable submission values <span class="new-marker">new</span></div>
+                            <div class="state-title">Status flags</div>
                             <div class="bool-grid">
                                 ${boolItem("Submission record created", true)}
                                 ${boolItem("ready_to_process", b.readyToProcess, { warnWhenFalse: true })}
-                                ${boolItem("payment_required", record.paymentRequired)}
-                                ${boolItem("payment_complete", b.paymentComplete, { warnWhenFalse: record.paymentRequired })}
-                                ${boolItem("reconcile_needed", b.reconcileNeeded)}
-                            </div>
-                        </div>
-
-                        <div class="state-section">
-                            <div class="state-title">Processing steps <span class="new-marker">new</span></div>
-                            <div class="bool-grid">
-                                ${boolItem("Files saved", b.filesSaved, { errorWhenFalse: !!record.filesDetail, warnWhenFalse: !record.filesDetail })}
-                                ${boolItem("Update records", b.updateRecords, { warnWhenFalse: true })}
-                                ${boolItem("Awaiting updates", b.awaitingUpdates)}
-                                ${boolItem("Approval", b.approval, { warnWhenFalse: true })}
+                                ${boolItem("Awaiting updates", awaitingHold(record))}
+                                ${boolItem("Approved", b.approval, { warnWhenFalse: true })}
                                 ${boolItem("Auto", b.auto)}
-                                ${boolItem("PDF job", b.pdfJob, { warnWhenFalse: true })}
-                                ${boolItem("Billing history", b.billingHistory, { warnWhenFalse: true })}
-                                ${boolItem("Emails sent", b.emails, { warnWhenFalse: true })}
-                                ${boolItem("Custom code", b.customCode, { warnWhenFalse: true })}
                             </div>
-                            ${updateStatsLine(record)}
                         </div>
 
                         <div class="state-section">
@@ -1890,8 +2676,6 @@
                                 ${boolItem("Grandparent", b.grandparent)}
                             </div>
                         </div>
-
-                        ${filesDetailSection}
 
                         <div class="state-section">
                             <div class="state-title">Pipeline checkpoints</div>
@@ -1912,11 +2696,10 @@
                     <button class="btn">${icon('pause-circle')} Pend</button>
                     <button class="btn">${icon('x-circle')} Deny</button>
                     <button class="btn">${icon('file-text')} Rebuild PDF</button>
-                    <button class="btn">${icon('minimize')} Show Data - Minimized</button>
                     <button class="btn">${icon('maximize')} Show Data - Full</button>
                     <button class="btn primary">${icon('refresh')} Replay Pipeline <span class="new-marker">new</span></button>
                     <button class="btn">${icon('credit-card')} Force Reconcile <span class="new-marker">new</span></button>
-                    ${record.filesDetail && record.filesDetail.saved < record.filesDetail.total
+                    ${filesSummary(record.ops.files).state === "failed"
                 ? `<button class="btn danger">${icon('upload')} Retry Failed Uploads <span class="new-marker">new</span></button>`
                 : ''}
                 </div>
@@ -1939,9 +2722,10 @@
             { key: "status", label: "Status", on: true },
             { key: "stage", label: "Stage", on: false },
             { key: "membershipId", label: "MEMBERSHIP_ID", on: false },
-            { key: "pdf", label: "PDF", on: false },
+            { key: "pdf", label: "PDF", on: true },
             { key: "files", label: "Files", on: true },
-            { key: "awaitingUpdates", label: "Awaiting Updates", on: true },
+            { key: "emails", label: "Emails", on: true },
+            { key: "awaitingUpdates", label: "Awaiting Updates", on: false },
             { key: "approval", label: "Approval", on: true },
             { key: "steps", label: "Steps", on: true },
             { key: "paymentDate", label: "Payment Date-Time", on: false },
@@ -1983,6 +2767,17 @@
             }
         });
         applyColumnVisibility();
+
+        // Form Type drives the expected configuration — switching it swaps submission sets.
+        const formTypeSel = document.getElementById("formTypeFilter");
+        if (formTypeSel) {
+            formTypeSel.addEventListener("change", () => {
+                activeType = recordSets[formTypeSel.value] ? formTypeSel.value : "RENEW";
+                activeId = null;
+                renderGrid();
+                renderDetail();
+            });
+        }
 
         renderGrid();
         renderDetail();
