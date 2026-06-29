@@ -7,6 +7,8 @@ This document reconciles the mockup in `form_submit_tool.html` with the current 
 
 Those global files are reference material only. The plan below describes the schema and integration points needed to produce the mockup behavior without editing those files directly in this project.
 
+> **Reference implementation:** Local, patched copies of both global files (plus the new helper class and Oracle DDL) live under [`../patched/`](../patched/). They are not deployed and the originals were never edited; see [`../patched/README.md`](../patched/README.md) for the change list and deploy order. Search those files for `FORM SUBMIT LEDGER PATCH` to review every edit.
+
 ## What The Global Code Already Does
 
 `forms.inc` already creates and updates an `app_renew` row during form progress and submit. The key durable anchor is `saveFormData(formStatus)`, which inserts or updates `app_renew(app_renew_id, app_renew_type, app_renew_status, membership_id)` and can save the current session data.
