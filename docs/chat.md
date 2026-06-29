@@ -255,3 +255,25 @@ That combination is what actually makes the system resilient to:
 ***
 
 If you want, I can adjust the diagram to **explicitly show the “awaiting payment” vs “processing” state transitions** — that’s usually the next useful step for aligning dev + PM.
+
+***
+
+# Addendum: Reconciliation With Current Global ASP Flow
+
+The current global files already establish the right anchor points:
+
+- `forms.inc` creates or updates `app_renew` before the full submit workflow is complete.
+- Payment writes `PAYMENT_STATUS` and `PAYMENT_DATE_TIME` into `app_renew_detail`.
+- Page/config branches call the real work: `SaveFiles`, `SaveData`, `PDF`, email page sends, batch transaction helpers, and custom `execute_code`.
+- `apprenewadmin.asp` lists existing submissions and derives coarse PDF, Awaiting Updates, and Payment values from `form_pdf`, `mem_await` / `mem_det_await`, and `app_renew_detail`.
+
+The mockup should therefore not be viewed as a replacement form processor. It is a durable execution ledger and clearer admin surface layered around the existing processor.
+
+The missing schema needs to answer four questions the current tables only answer indirectly:
+
+1. What was expected to happen for this form type?
+2. Which expectations were triggered by this particular submission's field values?
+3. Which operation or item is queued, running, retrying, awaiting review, done, failed, or not needed?
+4. What can a recovery worker safely retry without duplicating already completed work?
+
+See `durable_submission_schema_plan.md` for the concrete table proposal and phased implementation plan.
