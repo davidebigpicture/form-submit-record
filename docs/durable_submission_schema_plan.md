@@ -472,6 +472,13 @@ Payment:
 - `state = done` when payment is confirmed.
 - `state = failed` when a known gateway failure occurs.
 - `state = not_needed` when a conditional flow bypasses the configured payment page, with `source_scope = triggered`, `trigger_field = payment_ty`, `trigger_value = K`, and `notes` explaining the alternate page.
+- **List view display** (legacy-admin scan pattern; maps from canonical `state` above):
+  - `done` → `Complete ($amount)`
+  - `awaiting` / `pending` → `Pending ($amount)` — payment **not** completed
+  - `ready` → `Not paid ($amount)`
+  - `failed` → `Failed ($amount)`
+  - `not_configured` / `not_needed` / bypass → `NA`
+- Canonical `state` is stored in `form_submit_operation`; display labels are a view/UI concern.
 
 Files:
 
@@ -846,8 +853,9 @@ Goal: make `apprenewadmin.asp` show the mockup's state using real schema.
   - State: durable execution state.
   - Status: legacy/admin `app_renew_status`.
   - Awaiting Updates: active persisted hold now.
-  - Review / Approval: derived review status (`Auto`, `Awaiting`, `Approved`).
-  - Payment/PDF/Files/Emails: operation summaries.
+  - Review: derived review status (`Auto`, `Awaiting`, `Approved`).
+  - Payment: list shows `Complete ($)` / `Pending ($)` / `Not paid` / `Failed` / `NA` from the `payment` operation row; Payment Date-Time from legacy `app_renew_detail` or operation `completed_at`.
+  - PDF/Files/Emails: operation summaries.
 - Keep the old admin actions (approve, pend, deny, delete, rebuild PDF) but add safe recovery actions that operate through the new helper API.
 
 ## Open Decisions
@@ -861,7 +869,9 @@ Goal: make `apprenewadmin.asp` show the mockup's state using real schema.
 ## Acceptance Criteria
 
 - A PM can switch Form Type and see consistent form-level expectations for all submissions of that type.
-- A submission with no payment shows Payment as `Not required` or `NA` with the reason.
+- A submission with no payment shows Payment as `NA` on the list (with reason in detail).
+- A submission with payment completed shows Payment as `Complete ($amount)` on the list.
+- A submission awaiting gateway or payment confirmation shows Payment as `Pending ($amount)` on the list.
 - A submission with payment bypassed shows the triggering field/value and does not wait on gateway reconciliation.
 - Optional upload fields with no files do not look failed.
 - Multiple files in one upload field are tracked individually.

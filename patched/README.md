@@ -21,7 +21,15 @@ and visualized in [`../form_submit_tool.html`](../form_submit_tool.html).
 
 ## Canonical vocabulary
 
-Operation `state` values are shared across the mockup (`OP_STATE`), `db/form_submit_ledger.sql` (`ck_fso_state`), and `cFormSubmitLedger.inc`. UI display labels may differ from stored values (e.g. canonical `awaiting` with `method: "card"` renders as "Awaiting gateway"). Do not persist display-only states like `awaiting_gateway` or `not_required`.
+Operation `state` values are shared across the mockup (`OP_STATE`), `db/form_submit_ledger.sql` (`ck_fso_state`), and `cFormSubmitLedger.inc`. UI display labels may differ from stored values:
+
+| Surface | Example |
+|---------|---------|
+| Stored `state` | `awaiting` |
+| List Payment column | `Pending ($100.00)` |
+| Detail payment card | `Awaiting gateway` (when `method = card`) |
+
+Do not persist display-only states like `awaiting_gateway` or `not_required`.
 
 Every change in the two ASP files is wrapped in clearly marked blocks:
 

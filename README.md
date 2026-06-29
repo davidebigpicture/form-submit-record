@@ -13,12 +13,19 @@ Mockup and design artifacts for a durable, recoverable form submission pipeline 
 | `docs/chat.md` | Design discussion notes |
 | `docs/meeting_notes.md` | Feature checklist from planning sessions |
 | `docs/durable_submission_schema_plan.md` | Proposed schema and implementation plan reconciled against `forms.inc` and `apprenewadmin.asp` |
+| `patched/` | Local patched copies of `forms.inc`, `apprenewadmin.asp`, `cFormSubmitLedger.inc`, and Oracle DDL (not deployed) |
 
 ## Viewing the mockup
 
 Open `form_submit_tool.html` in a browser. No build step required.
 
 The mockup is intentionally richer than the current global ASP admin tool. It shows the desired durable submission record: form-type-specific expected configuration, per-operation execution state, per-item file/email tracking, Awaiting Updates review state, and recovery actions.
+
+**List view highlights** (what PMs scan first):
+
+- **Payment** — legacy-admin wording: `Complete ($)`, `Pending ($)`, `Not paid`, `Failed`, or `NA` (maps from canonical `ops.payment.state`: `done`, `awaiting`/`pending`, `ready`, `failed`, `not_configured`/`not_needed`).
+- **Review** — derived from the active hold: `Auto`, `Awaiting`, or `Approved` (not the legacy `app_renew_status = APPROVED` Status column).
+- **State** — durable execution lifecycle (`draft`, `processing`, `completed`, etc.), separate from payment completion.
 
 ## Current Design Status
 
